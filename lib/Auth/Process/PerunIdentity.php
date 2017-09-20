@@ -19,6 +19,7 @@
  *
  * @author Ondrej Velisek <ondrejvelisek@gmail.com>
  * @author Michal Prochazka <michalp@ics.muni.cz>
+ * @author Pavel Vyskocil <vyskocilpavel@muni.cz>
  */
 class sspmod_perun_Auth_Process_PerunIdentity extends SimpleSAML_Auth_ProcessingFilter
 {
@@ -67,8 +68,8 @@ class sspmod_perun_Auth_Process_PerunIdentity extends SimpleSAML_Auth_Processing
 			$config[self::SOURCE_IDP_ENTITY_ID_ATTR] = sspmod_perun_Auth_Process_RetainIdPEntityID::DEFAULT_ATTR_NAME;
 		}
 		if (!isset($config[self::FORCE_REGISTRATION_TO_GROUPS])) {
-                        $config[self::FORCE_REGISTRATION_TO_GROUPS] = false;
-                }
+						$config[self::FORCE_REGISTRATION_TO_GROUPS] = false;
+				}
 
 		$this->uidsAttr = $config[self::UIDS_ATTR];
 		$this->registerUrl = (string) $config[self::REGISTER_URL];
@@ -127,11 +128,11 @@ class sspmod_perun_Auth_Process_PerunIdentity extends SimpleSAML_Auth_Processing
 		$spGroups = $this->adapter->getSpGroups($spEntityId, $vo);
 
 		if (empty($spGroups)) {
-			SimpleSAML_Logger::warning('No Perun groups in VO '.$vo->getName().'are assigned with SP entityID '.$spEntityId.'. ' .
-                                'Hint1: create facility in Perun with attribute entityID of your SP. ' .
-                                'Hint2: assign groups in VO '.$vo->getName().' to resource of the facility in Perun.'
-			);
-                        $this->unauthorized($request);
+			$message = 'No Perun groups in VO '.$vo->getName().'are assigned with SP entityID '.$spEntityId.'. ' .
+				'Hint1: create facility in Perun with attribute entityID of your SP. ' .
+				'Hint2: assign groups in VO '.$vo->getName().' to resource of the facility in Perun.';
+			SimpleSAML_Logger::warning($message);
+						$this->unauthorized($request, $message);
 		}
 
 		SimpleSAML_Logger::debug("SP GROUPs - ".var_export($spGroups, true));
@@ -143,17 +144,28 @@ class sspmod_perun_Auth_Process_PerunIdentity extends SimpleSAML_Auth_Processing
 			$this->register($request, $this->registerUrl, $this->callbackParamName, $vo, $spGroups, $this->interface);
 		}
 
+		$groups = $this->adapter->isUserOnFacility($spEntityId,$user->getId());
+		$serviceName = $request['SPMetadata']['name']['en'];
 
-		$memberGroups = $this->adapter->getMemberGroups($user, $vo);
-
-		SimpleSAML_Logger::debug('member groups: '.var_export($memberGroups, true));
-		SimpleSAML_Logger::debug('sp groups: '.var_export($spGroups, true));
-
-		$groups = $this->intersectById($spGroups, $memberGroups);
+		if ($serviceName != null){
+			$serviceNameString = $serviceName . " ( " . $spEntityId . " )";
+		} else {
+			$serviceNameString = $spEntityId;
+		}
 
 		if (empty($groups)) {
-			SimpleSAML_Logger::warning('Perun user with identity/ies: '. implode(',', $uids) .' is not member of any assigned group for resource (' . $spEntityId . ')');
-                        $this->unauthorized($request);
+			$time = time();
+			$g = array();
+			foreach ($spGroups as $spGroup){
+				array_push($g, "id: " . $spGroup->getId() . ", name: " . $spGroup->getName());
+			}
+			SimpleSAML_Logger::warning('[' . $time . '] Perun user with identity/ies: '.
+				implode(',', $uids) .' is not member of any assigned group for resource (' . $spEntityId . ')');
+			$message = '['. $time .'] Perun user with identity/ies: ' . '<br>*'
+				. implode('<br>*', $uids) . '<br>' . ' is not member of any assigned group for resource: '
+				. $serviceNameString . '<br><br>' . 'This user must be member at least one of these groups: ' . '<br>*'
+				. implode('<br>*', $g);
+						$this->unauthorized($request, $message);
 		}
 
 		SimpleSAML_Logger::info('Perun user with identity/ies: '. implode(',', $uids) .' has been found and SP has sufficient rights to get info about him. '.
@@ -167,7 +179,6 @@ class sspmod_perun_Auth_Process_PerunIdentity extends SimpleSAML_Auth_Processing
 		$request['perun']['groups'] = $groups;
 
 	}
-
 
 	/**
 	 * Redirects user to register (or consolidate unknown identity) on external page (e.g. registrar).
@@ -253,40 +264,6 @@ class sspmod_perun_Auth_Process_PerunIdentity extends SimpleSAML_Auth_Processing
 
 	}
 
-
-
-
-	/**
-	 * @param sspmod_perun_model_HasId[] $spGroups
-	 * @param sspmod_perun_model_HasId[] $memberGroups
-	 * @return sspmod_perun_model_HasId[]
-	 */
-	private function intersectById($spGroups, $memberGroups)
-	{
-		$intersection = array();
-		foreach ($spGroups as $spGroup) {
-			if ($this->containsId($memberGroups, $spGroup->getId())) {
-				array_push($intersection, $spGroup);
-			}
-		}
-		return $intersection;
-	}
-
-	/**
-	 * @param sspmod_perun_model_HasId[] $entities
-	 * @param int $value
-	 * @return bool
-	 */
-	private function containsId($entities, $value)
-	{
-		foreach ($entities as $entity) {
-			if ($entity->getId() === $value) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	/**
 	 * Returns true, if entities contains VO members group
 	 *
@@ -304,23 +281,32 @@ class sspmod_perun_Auth_Process_PerunIdentity extends SimpleSAML_Auth_Processing
 	}
 
 	/**
-         * When the process logic determines that the user is not
-         * authorized for this service, then forward the user to
-         * an 403 unauthorized page.
-         *
-         * Separated this code into its own method so that child
-         * classes can override it and change the action. Forward
-         * thinking in case a "chained" ACL is needed, more complex
-         * permission logic.
-         *
-         * @param array $request
-         */
-        protected function unauthorized(&$request) {
-                // Save state and redirect to 403 page
-                $id = SimpleSAML_Auth_State::saveState($request,
-                                'authorize:Authorize');
-                $url = SimpleSAML_Module::getModuleURL(
-                                'authorize/authorize_403.php');
-                \SimpleSAML\Utils\HTTP::redirectTrustedURL($url, array('StateId' => $id));
-        }
+		 * When the process logic determines that the user is not
+		 * authorized for this service, then forward the user to
+		 * an 403 unauthorized page.
+		 *
+		 * Separated this code into its own method so that child
+		 * classes can override it and change the action. Forward
+		 * thinking in case a "chained" ACL is needed, more complex
+		 * permission logic.
+		 *
+		 * @param array $request
+		 */
+	protected function unauthorized(&$request, &$message) {
+		// Save state and redirect to 403 page
+		$id = SimpleSAML_Auth_State::saveState($request,
+			'perunauthorize:Perunauthorize');
+		$url = SimpleSAML_Module::getModuleURL(
+			'perunauthorize/perunauthorize_403.php');
+		if (isset($request['SPMetadata']['InformationURL']['en'])){
+			\SimpleSAML\Utils\HTTP::redirectTrustedURL($url,
+				array('StateId' => $id, 'informationURL' => $request['SPMetadata']['InformationURL']['en'],
+					'administrationContact' => $request['SPMetadata']['administrationContact'],
+					'serviceName' => $request['SPMetadata']['name']['en'], 'message' => $message));
+		} else {
+			\SimpleSAML\Utils\HTTP::redirectTrustedURL($url,
+				array('StateId' => $id, 'administrationContact' => $request['SPMetadata']['administrationContact'],
+					'serviceName' => $request['SPMetadata']['name']['en'], 'message' => $message));
+		}
+	}
 }
