@@ -128,11 +128,11 @@ class sspmod_perun_Auth_Process_PerunIdentity extends SimpleSAML_Auth_Processing
 		$spGroups = $this->adapter->getSpGroups($spEntityId, $vo);
 
 		if (empty($spGroups)) {
-			SimpleSAML_Logger::warning('No Perun groups in VO '.$vo->getName().'are assigned with SP entityID '.$spEntityId.'. ' .
-								'Hint1: create facility in Perun with attribute entityID of your SP. ' .
-								'Hint2: assign groups in VO '.$vo->getName().' to resource of the facility in Perun.'
-			);
-						$this->unauthorized($request);
+			$message = 'No Perun groups in VO '.$vo->getName().'are assigned with SP entityID '.$spEntityId.'. ' .
+				'Hint1: create facility in Perun with attribute entityID of your SP. ' .
+				'Hint2: assign groups in VO '.$vo->getName().' to resource of the facility in Perun.';
+			SimpleSAML_Logger::warning($message);
+						$this->unauthorized($request, $message);
 		}
 
 		SimpleSAML_Logger::debug("SP GROUPs - ".var_export($spGroups, true));
@@ -145,10 +145,27 @@ class sspmod_perun_Auth_Process_PerunIdentity extends SimpleSAML_Auth_Processing
 		}
 
 		$groups = $this->adapter->isUserOnFacility($spEntityId,$user->getId());
+		$serviceName = $request['SPMetadata']['name']['en'];
+
+		if ($serviceName != null){
+			$serviceNameString = $serviceName . " ( " . $spEntityId . " )";
+		} else {
+			$serviceNameString = $spEntityId;
+		}
 
 		if (empty($groups)) {
-			SimpleSAML_Logger::warning('Perun user with identity/ies: '. implode(',', $uids) .' is not member of any assigned group for resource (' . $spEntityId . ')');
-						$this->unauthorized($request);
+			$time = time();
+			$g = array();
+			foreach ($spGroups as $spGroup){
+				array_push($g, "id: " . $spGroup->getId() . ", name: " . $spGroup->getName());
+			}
+			SimpleSAML_Logger::warning('[' . $time . '] Perun user with identity/ies: '.
+				implode(',', $uids) .' is not member of any assigned group for resource (' . $spEntityId . ')');
+			$message = '['. $time .'] Perun user with identity/ies: ' . '<br>*'
+				. implode('<br>*', $uids) . '<br>' . ' is not member of any assigned group for resource: '
+				. $serviceNameString . '<br><br>' . 'This user must be member at least one of these groups: ' . '<br>*'
+				. implode('<br>*', $g);
+						$this->unauthorized($request, $message);
 		}
 
 		SimpleSAML_Logger::info('Perun user with identity/ies: '. implode(',', $uids) .' has been found and SP has sufficient rights to get info about him. '.
@@ -275,12 +292,21 @@ class sspmod_perun_Auth_Process_PerunIdentity extends SimpleSAML_Auth_Processing
 		 *
 		 * @param array $request
 		 */
-		protected function unauthorized(&$request) {
-				// Save state and redirect to 403 page
-				$id = SimpleSAML_Auth_State::saveState($request,
-								'authorize:Authorize');
-				$url = SimpleSAML_Module::getModuleURL(
-								'authorize/authorize_403.php');
-				\SimpleSAML\Utils\HTTP::redirectTrustedURL($url, array('StateId' => $id));
+	protected function unauthorized(&$request, &$message) {
+		// Save state and redirect to 403 page
+		$id = SimpleSAML_Auth_State::saveState($request,
+			'perunauthorize:Perunauthorize');
+		$url = SimpleSAML_Module::getModuleURL(
+			'perunauthorize/perunauthorize_403.php');
+		if (isset($request['SPMetadata']['InformationURL']['en'])){
+			\SimpleSAML\Utils\HTTP::redirectTrustedURL($url,
+				array('StateId' => $id, 'informationURL' => $request['SPMetadata']['InformationURL']['en'],
+					'administrationContact' => $request['SPMetadata']['administrationContact'],
+					'serviceName' => $request['SPMetadata']['name']['en'], 'message' => $message));
+		} else {
+			\SimpleSAML\Utils\HTTP::redirectTrustedURL($url,
+				array('StateId' => $id, 'administrationContact' => $request['SPMetadata']['administrationContact'],
+					'serviceName' => $request['SPMetadata']['name']['en'], 'message' => $message));
 		}
+	}
 }
