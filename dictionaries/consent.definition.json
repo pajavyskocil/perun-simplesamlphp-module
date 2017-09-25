@@ -1,0 +1,14 @@
+{
+  "consent_privacypolicy": {
+    "en": "Privacy policy for the service"
+  },
+  "forwardedscopedaffiliation": {
+    "en": "Affiliation at home organization"
+  },
+  "edupersonscopedaffiliation": {
+    "en": "Affiliation at Proxy AAI"
+  },
+  "loa":{
+    "en": "Level of Assurance"
+  }
+}
