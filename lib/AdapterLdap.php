@@ -8,12 +8,21 @@
 class sspmod_perun_AdapterLdap extends sspmod_perun_Adapter
 {
 
+	private $ldapBase;
 
+	const CONFIG_FILE_NAME = 'module_perun.php';
+	const LDAP_BASE  = 'ldap.base';
+
+	public function __construct ()
+	{
+		$conf = SimpleSAML_Configuration::getConfig(self::CONFIG_FILE_NAME);
+		$this->ldapBase = $conf->getString(self::LDAP_BASE);
+	}
 	public function getPerunUser($idpEntityId, $uids)
 	{
 		# Build a LDAP query, we are searching for the user who has at least one of the uid
 		$query = '';
-                foreach ($uids as $uid) {
+				foreach ($uids as $uid) {
 			$query .= "(eduPersonPrincipalNames=$uid)";
 		}
 
@@ -21,11 +30,10 @@ class sspmod_perun_AdapterLdap extends sspmod_perun_Adapter
 			return null;
 		}
 
-		$user = sspmod_perun_LdapConnector::searchForEntity("ou=People,dc=perun,dc=cesnet,dc=cz",
+		$user = sspmod_perun_LdapConnector::searchForEntity("ou=People," . $this->ldapBase,
 			"(|$query)",
 			array("perunUserId", "displayName", "cn", "givenName", "sn", "preferredMail", "mail")
 		);
-
 		if (is_null($user)) {
 			return $user;
 		}
@@ -44,7 +52,7 @@ class sspmod_perun_AdapterLdap extends sspmod_perun_Adapter
 	public function getMemberGroups($user, $vo)
 	{
 		$userId = $user->getId();
-		$userWithMembership = sspmod_perun_LdapConnector::searchForEntity("perunUserId=$userId,ou=People,dc=perun,dc=cesnet,dc=cz",
+		$userWithMembership = sspmod_perun_LdapConnector::searchForEntity("perunUserId=$userId,ou=People," . $this->ldapBase,
 			"(objectClass=perunUser)",
 			array("perunUserId", "memberOf")
 		);
@@ -69,16 +77,17 @@ class sspmod_perun_AdapterLdap extends sspmod_perun_Adapter
 
 	public function getSpGroups($spEntityId, $vo)
 	{
-		$resources = sspmod_perun_LdapConnector::searchForEntities("dc=perun,dc=cesnet,dc=cz",
+		$resources = sspmod_perun_LdapConnector::searchForEntities($this->ldapBase,
 			"(&(objectClass=perunResource)(entityID=$spEntityId))",
-			array("perunResourceId", "assignedGroupId")
+			array("perunResourceId", "assignedGroupId", "perunVoId")
 		);
-		$voId = $vo->getId();
 
 		$groups = array();
 		foreach ($resources as $resource) {
 			foreach ($resource['assignedGroupId'] as $groupId) {
-				$group = sspmod_perun_LdapConnector::searchForEntity("perunGroupId=$groupId,perunVoId=$voId,dc=perun,dc=cesnet,dc=cz",
+
+				$group = sspmod_perun_LdapConnector::searchForEntity("perunGroupId=$groupId,perunVoId=" . $resource['perunVoId'][0] . "," . $this->ldapBase,
+
 					"(objectClass=perunGroup)",
 					array("perunGroupId", "cn", "perunUniqueGroupName", "perunVoId", "description")
 				);
@@ -95,7 +104,7 @@ class sspmod_perun_AdapterLdap extends sspmod_perun_Adapter
 	public function getGroupByName($vo, $name)
 	{
 		$voId = $vo->getId();
-		$group = sspmod_perun_LdapConnector::searchForEntity("perunVoId=$voId,dc=perun,dc=cesnet,dc=cz",
+		$group = sspmod_perun_LdapConnector::searchForEntity("perunVoId=$voId," . $this->ldapBase,
 			"(&(objectClass=perunGroup)(perunUniqueGroupName=$name))",
 			array("perunGroupId", "cn", "perunUniqueGroupName", "perunVoId", "description")
 		);
@@ -109,7 +118,7 @@ class sspmod_perun_AdapterLdap extends sspmod_perun_Adapter
 
 	public function getVoByShortName($voShortName)
 	{
-		$vo = sspmod_perun_LdapConnector::searchForEntity("dc=perun,dc=cesnet,dc=cz",
+		$vo = sspmod_perun_LdapConnector::searchForEntity($this->ldapBase,
 			"(&(objectClass=perunVo)(o=$voShortName))",
 			array("perunVoId", "o", "description")
 		);
@@ -124,12 +133,45 @@ class sspmod_perun_AdapterLdap extends sspmod_perun_Adapter
 	public function getUserAttributes($user, $attrNames)
 	{
 		$userId = $user->getId();
-		$attributes = sspmod_perun_LdapConnector::searchForEntity("perunUserId=$userId,ou=People,dc=perun,dc=cesnet,dc=cz",
+		$attributes = sspmod_perun_LdapConnector::searchForEntity("perunUserId=$userId,ou=People," . $this->ldapBase,
 			"(objectClass=perunUser)",
 			$attrNames
 		);
 		// user in ldap (simplified by LdapConnector method) is actually set of its attributes
 		return $attributes;
+	}
+
+
+	public function isUserOnFacility($spEntityId, $userId)
+	{
+		$resources = sspmod_perun_LdapConnector::searchForEntities("dc=perun,dc=cesnet,dc=cz",
+			"(&(objectClass=perunResource)(entityID=$spEntityId))",
+			array("perunResourceId")
+		);
+		SimpleSAML_Logger::debug("Resources - ".var_export($resources, true));
+
+		if (is_null($resources)) {
+			throw new SimpleSAML_Error_Exception("Service with spEntityId: ". $spEntityId ." hasn't assigned any resource.");
+		}
+		$resourcesString = "(|";
+		foreach ($resources as $resource){
+			$resourcesString .= "(assignedToResourceId=".$resource['perunResourceId'][0].")";
+		}
+		$resourcesString .= ")";
+
+		$groups = array();
+		$groupsA = sspmod_perun_LdapConnector::searchForEntities("dc=perun,dc=cesnet,dc=cz",
+			"(&(uniqueMember=perunUserId=".$userId.",ou=People,dc=perun,dc=cesnet,dc=cz)".$resourcesString.")",
+			array("perunGroupId", "cn", "perunUniqueGroupName", "perunVoId", "description")
+		);
+
+		foreach ($groupsA as $group) {
+			array_push($groups, new sspmod_perun_model_Group($group['perunGroupId'][0], $group['perunUniqueGroupName'][0], $group['description'][0]));
+
+		}
+		$groups = $this->removeDuplicateEntities($groups);
+		SimpleSAML_Logger::debug("Groups - ".var_export($groups, true));
+		return $groups;
 	}
 
 }

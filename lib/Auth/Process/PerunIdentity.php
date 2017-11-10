@@ -128,11 +128,13 @@ class sspmod_perun_Auth_Process_PerunIdentity extends SimpleSAML_Auth_Processing
 		$spGroups = $this->adapter->getSpGroups($spEntityId, $vo);
 
 		if (empty($spGroups)) {
+
 			$message = 'No Perun groups in VO '.$vo->getName().'are assigned with SP entityID '.$spEntityId.'. ' .
 				'Hint1: create facility in Perun with attribute entityID of your SP. ' .
 				'Hint2: assign groups in VO '.$vo->getName().' to resource of the facility in Perun.';
 			SimpleSAML_Logger::warning($message);
 						$this->unauthorized($request, $message);
+
 		}
 
 		SimpleSAML_Logger::debug("SP GROUPs - ".var_export($spGroups, true));
@@ -145,6 +147,7 @@ class sspmod_perun_Auth_Process_PerunIdentity extends SimpleSAML_Auth_Processing
 		}
 
 		$groups = $this->adapter->isUserOnFacility($spEntityId,$user->getId());
+
 		$serviceName = $request['SPMetadata']['name']['en'];
 
 		if ($serviceName != null){
@@ -292,6 +295,7 @@ class sspmod_perun_Auth_Process_PerunIdentity extends SimpleSAML_Auth_Processing
 		 *
 		 * @param array $request
 		 */
+
 	protected function unauthorized(&$request, &$message) {
 		// Save state and redirect to 403 page
 		$id = SimpleSAML_Auth_State::saveState($request,
@@ -310,3 +314,4 @@ class sspmod_perun_Auth_Process_PerunIdentity extends SimpleSAML_Auth_Processing
 		}
 	}
 }
+
