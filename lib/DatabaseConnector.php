@@ -2,6 +2,7 @@
 
 namespace SimpleSAML\Module\perun;
 
+use mysqli;
 use SimpleSAML\Configuration;
 use SimpleSAML\Logger;
 
@@ -58,7 +59,7 @@ class DatabaseConnector
 
     /**
      * Function returns the connection to db
-     * @return mysqli connection
+     * @return mysqli
      */
     public function getConnection()
     {

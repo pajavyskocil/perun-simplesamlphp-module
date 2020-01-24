@@ -27,10 +27,6 @@ class AdapterRpc extends Adapter
     const RPC_USER = 'rpc.username';
     const RPC_PASSWORD = 'rpc.password';
 
-    private $rpcUrl;
-    private $rpcUser;
-    private $rpcPassword;
-
     protected $connector;
 
     public function __construct($configFileName = null)
@@ -41,11 +37,11 @@ class AdapterRpc extends Adapter
 
         $conf = Configuration::getConfig($configFileName);
 
-        $this->rpcUrl = $conf->getString(self::RPC_URL);
-        $this->rpcUser = $conf->getString(self::RPC_USER);
-        $this->rpcPassword = $conf->getString(self::RPC_PASSWORD);
+        $rpcUrl = $conf->getString(self::RPC_URL);
+        $rpcUser = $conf->getString(self::RPC_USER);
+        $rpcPassword = $conf->getString(self::RPC_PASSWORD);
 
-        $this->connector = new RpcConnector($this->rpcUrl, $this->rpcUser, $this->rpcPassword);
+        $this->connector = new RpcConnector($rpcUrl, $rpcUser, $rpcPassword);
     }
 
     public function getPerunUser($idpEntityId, $uids)
@@ -80,12 +76,12 @@ class AdapterRpc extends Adapter
             } catch (PerunException $e) {
                 if ($e->getName() === 'UserExtSourceNotExistsException') {
                     continue;
-                } elseif ($e->getName() === 'ExtSourceNotExistsException') {
+                }
+                if ($e->getName() === 'ExtSourceNotExistsException') {
                     // Because use of original/source entityID as extSourceName
                     continue;
-                } else {
-                    throw $e;
                 }
+                throw $e;
             }
         }
 
@@ -116,15 +112,12 @@ class AdapterRpc extends Adapter
                     'attributeName' => 'urn:perun:group:attribute-def:virt:voShortName'
                 ]);
                 $uniqueName = $attr['value'] . ":" . $group['name'];
-                array_push(
-                    $convertedGroups,
-                    new Group(
-                        $group['id'],
-                        $group['voId'],
-                        $group['name'],
-                        $uniqueName,
-                        $group['description']
-                    )
+                $convertedGroups[] = new Group(
+                    $group['id'],
+                    $group['voId'],
+                    $group['name'],
+                    $uniqueName,
+                    $group['description']
                 );
             } catch (PerunException $e) {
                 continue;
@@ -148,14 +141,11 @@ class AdapterRpc extends Adapter
 
         $resources = [];
         foreach ($perunAttrs as $perunAttr) {
-            array_push(
-                $resources,
-                new Resource(
-                    $perunAttr['id'],
-                    $perunAttr['voId'],
-                    $perunAttr['facilityId'],
-                    $perunAttr['name']
-                )
+            $resources[] = new Resource(
+                $perunAttr['id'],
+                $perunAttr['voId'],
+                $perunAttr['facilityId'],
+                $perunAttr['name']
             );
         }
 
@@ -171,15 +161,12 @@ class AdapterRpc extends Adapter
                     'attributeName' => 'urn:perun:group:attribute-def:virt:voShortName'
                 ]);
                 $uniqueName = $attr['value'] . ":" . $group['name'];
-                array_push(
-                    $spGroups,
-                    new Group(
-                        $group['id'],
-                        $group['voId'],
-                        $group['name'],
-                        $uniqueName,
-                        $group['description']
-                    )
+                $spGroups[] = new Group(
+                    $group['id'],
+                    $group['voId'],
+                    $group['name'],
+                    $uniqueName,
+                    $group['description']
                 );
             }
         }
@@ -322,13 +309,13 @@ class AdapterRpc extends Adapter
                 $usersGroupOnFacility['attributes'][0]['friendlyName'] === 'voShortName') {
                 $uniqueName = $usersGroupOnFacility['attributes'][0]['value'] . ":" . $usersGroupOnFacility['name'];
 
-                array_push($groups, new Group(
+                $groups[] = new Group(
                     $usersGroupOnFacility['id'],
                     $usersGroupOnFacility['voId'],
                     $usersGroupOnFacility['name'],
                     $uniqueName,
                     $usersGroupOnFacility['description']
-                ));
+                );
             }
         }
         $groups = $this->removeDuplicateEntities($groups);
@@ -344,14 +331,11 @@ class AdapterRpc extends Adapter
         ]);
         $facilities = [];
         foreach ($perunAttrs as $perunAttr) {
-            array_push(
-                $facilities,
-                new Facility(
-                    $perunAttr['id'],
-                    $perunAttr['name'],
-                    $perunAttr['description'],
-                    $spEntityId
-                )
+            $facilities[] = new Facility(
+                $perunAttr['id'],
+                $perunAttr['name'],
+                $perunAttr['description'],
+                $spEntityId
             );
         }
         return $facilities;
@@ -378,14 +362,12 @@ class AdapterRpc extends Adapter
             return null;
         }
 
-        $facility = new Facility(
+        return new Facility(
             $perunAttr[0]['id'],
             $perunAttr[0]['name'],
             $perunAttr[0]['description'],
             $spEntityId
         );
-
-        return $facility;
     }
 
     /**
@@ -393,6 +375,7 @@ class AdapterRpc extends Adapter
      * @param User $user
      * @param Vo $vo
      * @return Member
+     * @throws Exception
      */
     public function getMemberByUser($user, $vo)
     {
@@ -433,14 +416,11 @@ class AdapterRpc extends Adapter
         ]);
         $facilities = [];
         foreach ($perunAttrs as $perunAttr) {
-            array_push(
-                $facilities,
-                new Facility(
-                    $perunAttr['id'],
-                    $perunAttr['name'],
-                    $perunAttr['description'],
-                    null
-                )
+            $facilities[] = new Facility(
+                $perunAttr['id'],
+                $perunAttr['name'],
+                $perunAttr['description'],
+                null
             );
         }
         return $facilities;
@@ -454,13 +434,13 @@ class AdapterRpc extends Adapter
         ]);
         $attributes = [];
         foreach ($perunAttrs as $perunAttr) {
-            array_push($attributes, [
+            $attributes[] = [
                 'id' => $perunAttr['id'],
                 'name' => $perunAttr['namespace'] . ':' . $perunAttr['friendlyName'],
                 'displayName' => $perunAttr['displayName'],
                 'type' => $perunAttr['type'],
                 'value' => $perunAttr['value']
-            ]);
+            ];
         }
         return $attributes;
     }
@@ -520,7 +500,7 @@ class AdapterRpc extends Adapter
 
         $userGroupsIds = [];
         foreach ($userGroups as $userGroup) {
-            array_push($userGroupsIds, $userGroup->getId());
+            $userGroupsIds[] = $userGroup->getId();
         }
 
         $capabilities = [];
@@ -541,7 +521,7 @@ class AdapterRpc extends Adapter
             foreach ($resourceGroups as $resourceGroup) {
                 if (in_array($resourceGroup['id'], $userGroupsIds)) {
                     foreach ($resourceCapabilities as $capability) {
-                        array_push($capabilities, $capability);
+                        $capabilities[] = $capability;
                     }
                     break;
                 }

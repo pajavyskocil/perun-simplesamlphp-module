@@ -2,6 +2,7 @@
 
 namespace SimpleSAML\Module\perun\Auth\Process;
 
+use SimpleSAML\Auth\ProcessingFilter;
 use SimpleSAML\Module\perun\Adapter;
 use SimpleSAML\Error\Exception;
 use SimpleSAML\Logger;
@@ -18,10 +19,9 @@ use SimpleSAML\Logger;
  *
  * @author Ondrej Velisek <ondrejvelisek@gmail.com>
  */
-class PerunAttributes extends \SimpleSAML\Auth\ProcessingFilter
+class PerunAttributes extends ProcessingFilter
 {
     private $attrMap;
-    private $interface;
     private $mode;
 
     const MODE_FULL = 'FULL';
@@ -51,12 +51,12 @@ class PerunAttributes extends \SimpleSAML\Auth\ProcessingFilter
         }
 
         $this->attrMap = (array)$config['attrMap'];
-        $this->interface = (string)$config['interface'];
-        $this->mode = (string)$config['mode'];
+        $interface = $config['interface'];
+        $this->mode = $config['mode'];
         if (!in_array($this->mode, [self::MODE_FULL, self::MODE_PARTIAL])) {
             $this->mode = self::MODE_FULL;
         }
-        $this->adapter = Adapter::getInstance($this->interface);
+        $this->adapter = Adapter::getInstance($interface);
     }
 
     public function process(&$request)
@@ -82,10 +82,10 @@ class PerunAttributes extends \SimpleSAML\Auth\ProcessingFilter
                 if (isset($request['Attributes'][$attrValue])) {
                     $attr = $request['Attributes'][$attrValue];
                     if (empty($attr)) {
-                        array_push($attributes, $attrName);
+                        $attributes[] = $attrName;
                     }
                 } else {
-                    array_push($attributes, $attrName);
+                    $attributes[] = $attrName;
                 }
             }
         }

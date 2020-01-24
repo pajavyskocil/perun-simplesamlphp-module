@@ -51,7 +51,7 @@ a.tagged:hover, a.tagged:focus {
     color: white;
     background: rgba(0, 0, 0, 0.2);
     border: 1px solid rgba(0, 0, 0, 0.3);
-    box-shadow: 0px 0px 10px 30px rgba(0, 0, 0, 0.1) inset;
+    box-shadow: 0 0 10px 30px rgba(0, 0, 0, 0.1) inset;
 }
 
 a.tagged:hover img {
@@ -59,7 +59,7 @@ a.tagged:hover img {
 }
 
 div.metalist {
-    margin: 10px 0px;
+    margin: 10px 0;
 }
 
 form#idpselectform input {
@@ -103,8 +103,8 @@ form#idpselectform input {
 }
 
 .inlinesearch {
-    padding: 0px;
-    margin: 10px 0px 20px 0px;
+    padding: 0;
+    margin: 10px 0 20px 0;
     float: none;
 }
 
@@ -112,7 +112,7 @@ form#idpselectform input {
     margin-left: auto;
     margin-right: auto;
     width: 500px;;
-    border: 0px;
+    border: 0;
     text-align: center;
 }
 

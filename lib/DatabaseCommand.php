@@ -49,7 +49,7 @@ class DatabaseCommand
                 $idp['timestamp'] = $timestamp;
                 $idp['entityid'] = $entityId;
                 $idp['reason'] = $reason;
-                array_push($listOfIdPs, $idp);
+                $listOfIdPs[] = $idp;
             }
 
             $stmt->close();
@@ -92,7 +92,7 @@ class DatabaseCommand
 
             $stmt->bind_result($timestamp, $entityId, $reason);
             while ($stmt->fetch()) {
-                array_push($listOfIdPs, $entityId);
+                $listOfIdPs[] = $entityId;
             }
 
             $stmt->close();

@@ -2,6 +2,8 @@
 
 namespace SimpleSAML\Module\perun\Auth\Process;
 
+use SimpleSAML\Auth\ProcessingFilter;
+
 /**
  * Filter simply remove all attributes from requests. It is meant to use because We do not want to pass
  * any attributes directly from IdP. Rather fetch all from Perun.
@@ -10,7 +12,7 @@ namespace SimpleSAML\Module\perun\Auth\Process;
  * @author Ondrej Velisek <ondrejvelisek@gmail.com>
  * @author Pavel Vyskočil <vyskocilpavel@muni.cz>
  */
-class RemoveAllAttributes extends \SimpleSAML\Auth\ProcessingFilter
+class RemoveAllAttributes extends ProcessingFilter
 {
 
     const FILTER_ATTRIBUTE_LIST = 'filterAttributeList';

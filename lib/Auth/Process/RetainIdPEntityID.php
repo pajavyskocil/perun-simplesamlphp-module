@@ -2,6 +2,7 @@
 
 namespace SimpleSAML\Module\perun\Auth\Process;
 
+use SimpleSAML\Auth\ProcessingFilter;
 use SimpleSAML\Error\Exception;
 use SimpleSAML\Logger;
 
@@ -14,7 +15,7 @@ use SimpleSAML\Logger;
  *
  * @author Ondrej Velisek <ondrejvelisek@gmail.com>
  */
-class RetainIdPEntityID extends \SimpleSAML\Auth\ProcessingFilter
+class RetainIdPEntityID extends ProcessingFilter
 {
     const DEFAULT_ATTR_NAME = 'sourceIdPEntityID';
 

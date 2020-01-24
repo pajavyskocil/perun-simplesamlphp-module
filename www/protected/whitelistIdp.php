@@ -40,15 +40,13 @@ try {
     //FIXME: Not thread safe!!!
     $service = IdpListsService::getInstance();
 
-    if ($service->isWhitelisted($entityid)) {
-        if (!$service->isGreylisted($entityid)) {
-            header('Content-Type: application/json');
-            echo json_encode([
-                'result' => 'ALREADY_THERE',
-                'msg' => "IdP '$entityid' is already whitelisted."
-            ]);
-            exit;
-        }
+    if ($service->isWhitelisted($entityid) && !$service->isGreylisted($entityid)) {
+        header('Content-Type: application/json');
+        echo json_encode([
+            'result' => 'ALREADY_THERE',
+            'msg' => "IdP '$entityid' is already whitelisted."
+        ]);
+        exit;
     }
 
     $service->whitelistIdp($entityid, $reason);

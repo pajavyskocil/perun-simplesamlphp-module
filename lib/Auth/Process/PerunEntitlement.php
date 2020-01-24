@@ -30,7 +30,6 @@ class PerunEntitlement extends ProcessingFilter
     private $entitlementPrefix;
     private $entitlementAuthority;
     private $groupNameAARC;
-    private $interface;
     private $adapter;
 
     public function __construct($config, $reserved)
@@ -70,8 +69,8 @@ class PerunEntitlement extends ProcessingFilter
             $config[self::INTERFACE_PROPNAME] = Adapter::RPC;
         }
 
-        $this->interface = (string)$config[self::INTERFACE_PROPNAME];
-        $this->adapter = Adapter::getInstance($this->interface);
+        $interface = (string)$config[self::INTERFACE_PROPNAME];
+        $this->adapter = Adapter::getInstance($interface);
     }
 
     public function process(&$request)
@@ -120,7 +119,7 @@ class PerunEntitlement extends ProcessingFilter
             } else {
                 $groupName = $this->mapGroupName($request, $group->getUniqueName());
             }
-            array_push($eduPersonEntitlement, $groupName);
+            $eduPersonEntitlement[] = $groupName;
         }
 
         return $eduPersonEntitlement;
@@ -156,7 +155,7 @@ class PerunEntitlement extends ProcessingFilter
 
         foreach ($capabilities as $capability) {
             $resourceCapability = $this->capabilitiesWrapper($capability);
-            array_push($capabilitiesResult, $resourceCapability);
+            $capabilitiesResult[] = $resourceCapability;
         }
 
         return $capabilitiesResult;
@@ -182,27 +181,25 @@ class PerunEntitlement extends ProcessingFilter
      */
     protected function mapGroupName($request, $groupName)
     {
-        if (
-            isset($request['SPMetadata']['groupMapping']) &&
-            isset($request['SPMetadata']['groupMapping'][$groupName])) {
+        if (isset($request['SPMetadata']['groupMapping'][$groupName])) {
             Logger::debug(
                 'Mapping $groupName to ' . $request['SPMetadata']['groupMapping'][$groupName] .
                 ' for SP ' . $request['SPMetadata']['entityid']
             );
             return $request['SPMetadata']['groupMapping'][$groupName];
-        } elseif (isset($request['SPMetadata'][self::ENTITLEMENTPREFIX_ATTR])) {
+        }
+        if (isset($request['SPMetadata'][self::ENTITLEMENTPREFIX_ATTR])) {
             Logger::debug(
                 'EntitlementPrefix overridden by a SP ' . $request['SPMetadata']['entityid'] .
                 ' to ' . $request['SPMetadata'][self::ENTITLEMENTPREFIX_ATTR]
             );
             return $request['SPMetadata'][self::ENTITLEMENTPREFIX_ATTR] . $groupName;
-        } else {
-            # No mapping defined, so just put groupNamePrefix in front of the group
-            Logger::debug(
-                'No mapping found for group $groupName for SP ' . $request['SPMetadata']['entityid']
-            );
-            return $this->entitlementPrefix . 'group:' . $groupName;
         }
+        # No mapping defined, so just put groupNamePrefix in front of the group
+        Logger::debug(
+            'No mapping found for group $groupName for SP ' . $request['SPMetadata']['entityid']
+        );
+        return $this->entitlementPrefix . 'group:' . $groupName;
     }
 
     private function encodeName($name)

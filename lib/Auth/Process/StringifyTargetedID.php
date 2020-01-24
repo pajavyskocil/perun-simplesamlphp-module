@@ -64,8 +64,8 @@ class StringifyTargetedID extends ProcessingFilter
         if (is_object($attributeValue) && get_class($attributeValue) === 'SAML2\XML\saml\NameID') {
             return $attributeValue->getNameQualifier() . '!' . $attributeValue->getSPNameQualifier() . '!'
                 . $attributeValue->getValue();
-        } else {
-            return $attributeValue;
         }
+
+        return $attributeValue;
     }
 }

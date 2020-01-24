@@ -2,6 +2,7 @@
 
 namespace SimpleSAML\Module\perun\Auth\Process;
 
+use SimpleSAML\Auth\ProcessingFilter;
 use SimpleSAML\Error\Exception;
 use SimpleSAML\Logger;
 
@@ -15,7 +16,7 @@ use SimpleSAML\Logger;
  * Date: 21. 11. 2016
  */
 
-class ProcessTargetedID extends \SimpleSAML\Auth\ProcessingFilter
+class ProcessTargetedID extends ProcessingFilter
 {
     private $uidsAttr;
     private $prefix;

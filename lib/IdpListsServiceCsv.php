@@ -39,9 +39,9 @@ class IdpListsServiceCsv extends IdpListsService
 
     public function whitelistIdp($entityID, $reason = null)
     {
-        $wf = fopen($this->whitelistFile, 'a');
+        $wf = fopen($this->whitelistFile, 'ab');
         if (flock($wf, LOCK_EX)) {
-            $gf = fopen($this->greylistFile, 'c+');
+            $gf = fopen($this->greylistFile, 'cb+');
             if (flock($gf, LOCK_EX)) {
                 $idp = [date('Y-m-d H:i:s'), $entityID, $reason];
                 fputcsv($wf, $idp);
@@ -105,6 +105,7 @@ class IdpListsServiceCsv extends IdpListsService
      * @param string $listName "whitelist" or "greylist".
      * @param boolean $all
      * @return array of IdPS if $all is true or arrayOf entityIds
+     * @throws Exception
      */
     public function listToArray($listName, $all)
     {
@@ -120,15 +121,15 @@ class IdpListsServiceCsv extends IdpListsService
             return $resultList;
         }
 
-        $f = fopen($list, 'r');
+        $f = fopen($list, 'rb');
         if (flock($f, LOCK_SH)) {
             while (($idp = $this->arrayToIdp(fgetcsv($f))) !== false) {
                 if ($all) {
                     if (!in_array($idp, $resultList)) {
-                        array_push($resultList, $idp);
+                        $resultList[] = $idp;
                     }
                 } elseif (!in_array($idp['entityid'], $resultList)) {
-                    array_push($resultList, $idp['entityid']);
+                    $resultList[] = $idp['entityid'];
                 }
             }
 

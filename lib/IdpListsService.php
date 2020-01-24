@@ -31,6 +31,7 @@ abstract class IdpListsService
      * Function returns the instance of sspmod_perun_IdPListsService by configuration
      * Default is CSV
      * @return IdpListsServiceCsv|IdpListsServiceDB
+     * @throws Exception
      */
     public static function getInstance()
     {
@@ -38,13 +39,15 @@ abstract class IdpListsService
         $idpListServiceType = $configuration->getString(self::PROPNAME_IDP_LIST_SERVICE_TYPE, self::CSV);
         if ($idpListServiceType === self::CSV) {
             return new IdpListsServiceCsv();
-        } elseif ($idpListServiceType === self::DB) {
-            return new IdpListsServiceDB();
-        } else {
-            throw new Exception(
-                'Unknown idpListService type. Hint: try ' . self::CSV . ' or ' . self::DB
-            );
         }
+
+        if ($idpListServiceType === self::DB) {
+            return new IdpListsServiceDB();
+        }
+
+        throw new Exception(
+            'Unknown idpListService type. Hint: try ' . self::CSV . ' or ' . self::DB
+        );
     }
 
     /**

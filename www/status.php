@@ -1,23 +1,23 @@
 <?php
 
+use SimpleSAML\Configuration;
 use SimpleSAML\Module\perun\StatusConnector;
+use SimpleSAML\XHTML\Template;
 
 const OK = 'OK';
 const WARNING = 'WARNING';
-const CRITICAL = 'CRITICAL';
-const UNKNOWN = 'UNKNOWN';
 
 const CONFIG_FILE_NAME = 'module_perun.php';
 const SHOWN_SERVICES = 'status.shown_services';
 
 $services = [];
 
-$config = SimpleSAML_Configuration::getInstance();
-$perunConfig = SimpleSAML_Configuration::getConfig(CONFIG_FILE_NAME);
+$config = Configuration::getInstance();
+$perunConfig = Configuration::getConfig(CONFIG_FILE_NAME);
 
 $shownServicesList = $perunConfig->getArray(SHOWN_SERVICES, []);
 
-$statusConnector = sspmod_perun_StatusConnector::getInstance();
+$statusConnector = StatusConnector::getInstance();
 $services = $statusConnector->getStatus();
 
 $shownServices = [];
@@ -28,10 +28,10 @@ if (empty($shownServicesList)) {
 } else {
     foreach ($services as $service) {
         $serviceName = $service['name'];
-        if (in_array($serviceName, array_keys($shownServicesList))) {
+        if (array_key_exists($serviceName, $shownServicesList)) {
             $service['name'] = $shownServicesList[$serviceName]['name'];
             $service['description'] = $shownServicesList[$serviceName]['description'];
-            array_push($shownServices, $service);
+            $shownServices[] = $service;
         }
     }
 }
@@ -42,6 +42,6 @@ if (isset($_GET['output']) && $_GET['output'] === 'json') {
     exit;
 }
 
-$t = new SimpleSAML_XHTML_Template($config, 'perun:status-tpl.php');
+$t = new Template($config, 'perun:status-tpl.php');
 $t->data['services'] = $shownServices;
 $t->show();

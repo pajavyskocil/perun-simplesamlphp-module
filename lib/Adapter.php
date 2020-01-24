@@ -37,13 +37,13 @@ abstract class Adapter
     {
         if ($interface === self::RPC) {
             return new AdapterRpc();
-        } elseif ($interface === self::LDAP) {
-            return new AdapterLdap();
-        } else {
-            throw new Exception(
-                'Unknown perun interface. Hint: try ' . self::RPC . ' or ' . self::LDAP
-            );
         }
+        if ($interface === self::LDAP) {
+            return new AdapterLdap();
+        }
+        throw new Exception(
+            'Unknown perun interface. Hint: try ' . self::RPC . ' or ' . self::LDAP
+        );
     }
 
     /**
@@ -177,8 +177,8 @@ abstract class Adapter
     abstract public function setUserExtSourceAttributes($userExtSourceId, $attributes);
 
     /**
-     * @param sspmod_perun_model_User $user user
-     * @param sspmod_perun_model_Vo $vo vo
+     * @param User $user user
+     * @param Vo $vo vo
      * @return string status, null if member does not exist
      */
     abstract public function getMemberStatusByUserAndVo($user, $vo);
@@ -200,8 +200,8 @@ abstract class Adapter
         $ids = [];
         foreach ($entities as $entity) {
             if (!in_array($entity->getId(), $ids)) {
-                array_push($ids, $entity->getId());
-                array_push($removed, $entity);
+                $ids[] = $entity->getId();
+                $removed[] = $entity;
             }
         }
         return $removed;

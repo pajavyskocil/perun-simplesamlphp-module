@@ -2,6 +2,7 @@
 
 namespace SimpleSAML\Module\perun\Auth\Process;
 
+use SimpleSAML\Auth\ProcessingFilter;
 use SimpleSAML\Error\Exception;
 use SimpleSAML\Metadata\MetaDataStorageHandler;
 
@@ -12,7 +13,7 @@ use SimpleSAML\Metadata\MetaDataStorageHandler;
  *
  * @author Pavel Vyskocil <vyskocilpavel@muni.cz>
  */
-class IdPAttribute extends \SimpleSAML\Auth\ProcessingFilter
+class IdPAttribute extends ProcessingFilter
 {
     private $attrMap;
 

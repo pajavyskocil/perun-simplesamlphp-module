@@ -12,23 +12,30 @@ class ListOfSps
     {
         if ($attribute['type'] === 'java.lang.String' || $attribute['type'] === 'java.lang.LargeString') {
             return 'string';
-        } elseif ($attribute['type'] === 'java.lang.Integer') {
-            return 'integer';
-        } elseif ($attribute['type'] === 'java.lang.Boolean') {
-            return 'boolean';
-        } elseif ($attribute['type'] === 'java.util.ArrayList' || $attribute['type'] === 'java.util.LargeArrayList') {
-            return 'array';
-        } elseif ($attribute['type'] === 'java.util.LinkedHashMap') {
-            return 'map';
-        } else {
-            return '';
         }
+
+        if ($attribute['type'] === 'java.lang.Integer') {
+            return 'integer';
+        }
+
+        if ($attribute['type'] === 'java.lang.Boolean') {
+            return 'boolean';
+        }
+
+        if ($attribute['type'] === 'java.util.ArrayList' || $attribute['type'] === 'java.util.LargeArrayList') {
+            return 'array';
+        }
+
+        if ($attribute['type'] === 'java.util.LinkedHashMap') {
+            return 'map';
+        }
+
+        return '';
     }
 
     public static function printServiceName($service)
     {
-        if (empty($service['loginURL']['value'])
-        ) {
+        if (empty($service['loginURL']['value'])) {
             return $service['facility']->getName();
         }
 
@@ -72,8 +79,8 @@ class ListOfSps
         }
         if (!empty($string)) {
             return '<td class="' . self::getClass($service['facilityAttributes'][$attr]) . '">' . $string . '</td>';
-        } else {
-            return '<td/>';
         }
+
+        return '<td/>';
     }
 }

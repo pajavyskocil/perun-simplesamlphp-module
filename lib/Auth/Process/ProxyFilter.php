@@ -2,12 +2,12 @@
 
 namespace SimpleSAML\Module\perun\Auth\Process;
 
-use SimpleSAML\Error\Exception;
+use SimpleSAML\Auth\ProcessingFilter;
 use SimpleSAML\Logger;
 use SimpleSAML\Configuration;
 
 /**
- * Class sspmod_perun_Auth_Process_ProxyFilter
+ * Class ProxyFilter
  *
  * This filter allows to disable nested filter for particular SP
  * or for users with one of (black)listed attribute values.
@@ -34,7 +34,7 @@ use SimpleSAML\Configuration;
  *
  * @author Ondrej Velisek <ondrejvelisek@gmail.com>
  */
-class ProxyFilter extends \SimpleSAML\Auth\ProcessingFilter
+class ProxyFilter extends ProcessingFilter
 {
 
     private $config;

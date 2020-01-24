@@ -22,9 +22,8 @@ class Whitelisting
         if (array_key_exists('name', $metadata)) {
             if (is_array($metadata['name'])) {
                 return preg_replace("/\r|\n/", "", $metadata['name']['en']);
-            } else {
-                return preg_replace("/\r|\n/", "", $metadata['name']);
             }
+            return preg_replace("/\r|\n/", "", $metadata['name']);
         }
         return $metadata['entityid'];
     }

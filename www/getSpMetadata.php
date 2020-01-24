@@ -40,10 +40,10 @@ $rpcAdapter = new AdapterRpc();
 // Get list of all attribute names
 $attrNames = [];
 $allAttrNames = [];
-array_push($allAttrNames, $perunProxyEntityIDAttr);
+$allAttrNames[] = $perunProxyEntityIDAttr;
 foreach ($attributesDefinitions as $key => $value) {
-    array_push($attrNames, $key);
-    array_push($allAttrNames, $key);
+    $attrNames[] = $key;
+    $allAttrNames[] = $key;
 }
 
 // Get all facilities with proxyIdentifiers

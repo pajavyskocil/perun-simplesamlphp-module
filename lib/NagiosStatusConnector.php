@@ -38,9 +38,11 @@ class NagiosStatusConnector extends StatusConnector
 
         if (empty($this->url)) {
             throw new \Exception('Required option \'' . self::NAGIOS_URL . '\' is empty!');
-        } elseif (empty($this->certPath)) {
+        }
+        if (empty($this->certPath)) {
             throw new \Exception('Required option \'' . self::NAGIOS_CERT_PATH . '\' is empty!');
-        } elseif (empty($this->caPath)) {
+        }
+        if (empty($this->caPath)) {
             throw new \Exception('Required option \'' . self::NAGIOS_CA_PATH . '\' is empty!');
         }
     }
@@ -78,7 +80,7 @@ class NagiosStatusConnector extends StatusConnector
             $status = [];
             $status['name'] = $serviceStatus['service_display_name'];
             $status['status'] = $serviceStatus['status'];
-            array_push($result, $status);
+            $result[] = $status;
         }
 
         return $result;

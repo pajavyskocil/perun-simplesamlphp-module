@@ -39,12 +39,12 @@ abstract class StatusConnector
         $statusType = $configuration->getString(self::STATUS_TYPE, 'NAGIOS');
         if ($statusType === self::NAGIOS) {
             return new NagiosStatusConnector();
-        } else {
-            throw new Exception(
-                'Unknown StatusConnector type in option \'' . self::STATUS_TYPE . '\'. Only ' .
-                self::NAGIOS . ' type available now!'
-            );
         }
+
+        throw new Exception(
+            'Unknown StatusConnector type in option \'' . self::STATUS_TYPE . '\'. Only ' .
+            self::NAGIOS . ' type available now!'
+        );
     }
 
     /**
@@ -70,10 +70,10 @@ abstract class StatusConnector
     {
         if ($status === OK) {
             return '<span class="status label label-success">OK</span>';
-        } elseif ($status === WARNING) {
-            return '<span class="status label label-warning">WARNING</span>';
-        } elseif ($status === CRITICAL || $status === UNKNOWN) {
-            return '<span class="status label label-danger">CRITICAL</span>';
         }
+        if ($status === WARNING) {
+            return '<span class="status label label-warning">WARNING</span>';
+        }
+        return '<span class="status label label-danger">CRITICAL</span>';
     }
 }

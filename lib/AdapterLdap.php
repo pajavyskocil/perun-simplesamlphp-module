@@ -107,15 +107,12 @@ class AdapterLdap extends Adapter
                 '(objectClass=perunGroup)',
                 ['perunGroupId', 'cn', 'perunUniqueGroupName', 'perunVoId', 'description']
             );
-            array_push(
-                $groups,
-                new Group(
-                    $group['perunGroupId'][0],
-                    $group['perunVoId'][0],
-                    $group['cn'][0],
-                    $group['perunUniqueGroupName'][0],
-                    $group['description'][0]
-                )
+            $groups[] = new Group(
+                $group['perunGroupId'][0],
+                $group['perunVoId'][0],
+                $group['cn'][0],
+                $group['perunUniqueGroupName'][0],
+                $group['description'][0]
             );
         }
 
@@ -147,15 +144,12 @@ class AdapterLdap extends Adapter
                         '(objectClass=perunGroup)',
                         ['perunGroupId', 'cn', 'perunUniqueGroupName', 'perunVoId', 'description']
                     );
-                    array_push(
-                        $groups,
-                        new Group(
-                            $group['perunGroupId'][0],
-                            $group['perunVoId'][0],
-                            $group['cn'],
-                            $group['perunUniqueGroupName'][0],
-                            $group['description'][0]
-                        )
+                    $groups[] = new Group(
+                        $group['perunGroupId'][0],
+                        $group['perunVoId'][0],
+                        $group['cn'],
+                        $group['perunUniqueGroupName'][0],
+                        $group['description'][0]
                     );
                 }
             }
@@ -219,13 +213,12 @@ class AdapterLdap extends Adapter
     public function getUserAttributes($user, $attrNames)
     {
         $userId = $user->getId();
-        $attributes = $this->connector->searchForEntity(
+        // user in ldap (simplified by LdapConnector method) is actually set of its attributes
+        return $this->connector->searchForEntity(
             'perunUserId=' . $userId . ',ou=People,' . $this->ldapBase,
             '(objectClass=perunUser)',
             $attrNames
         );
-        // user in ldap (simplified by LdapConnector method) is actually set of its attributes
-        return $attributes;
     }
 
     public function getFacilitiesByEntityId($spEntityId)
@@ -249,14 +242,12 @@ class AdapterLdap extends Adapter
             return null;
         }
 
-        $facility = new Facility(
+        return new Facility(
             $ldapResult[self::PERUN_FACILITY_ID][0],
             $ldapResult[self::CN][0],
             $ldapResult[self::DESCRIPTION][0],
             $spEntityId
         );
-
-        return $facility;
     }
 
     public function getEntitylessAttribute($attrName)
@@ -345,21 +336,19 @@ class AdapterLdap extends Adapter
         );
 
         foreach ($groups as $group) {
-            array_push(
-                $resultGroups,
-                new Group(
-                    $group['perunGroupId'][0],
-                    $group['perunVoId'][0],
-                    $group['cn'][0],
-                    $group['perunUniqueGroupName'][0],
-                    $group['description'][0]
-                )
+            $resultGroups[] = new Group(
+                $group['perunGroupId'][0],
+                $group['perunVoId'][0],
+                $group['cn'][0],
+                $group['perunUniqueGroupName'][0],
+                $group['description'][0]
             );
         }
         $resultGroups = $this->removeDuplicateEntities($resultGroups);
         Logger::debug('Groups - ' . var_export($resultGroups, true));
         return $resultGroups;
     }
+
 
     public function getMemberStatusByUserAndVo($user, $vo)
     {
@@ -395,7 +384,7 @@ class AdapterLdap extends Adapter
 
         $userGroupsIds = [];
         foreach ($userGroups as $userGroup) {
-            array_push($userGroupsIds, $userGroup->getId());
+            $userGroupsIds[] = $userGroup->getId();
         }
 
         $resourceCapabilities = [];
@@ -409,7 +398,7 @@ class AdapterLdap extends Adapter
             foreach ($resource[self::ASSIGNED_GROUP_ID] as $groupId) {
                 if (in_array($groupId, $userGroupsIds)) {
                     foreach ($resource[self::CAPABILITIES] as $resourceCapability) {
-                        array_push($resourceCapabilities, $resourceCapability);
+                        $resourceCapabilities[] = $resourceCapability;
                     }
                     break;
                 }

@@ -35,7 +35,7 @@ foreach ($spGroups as $group) {
             if (!isset($vosForRegistration[$vo->getShortName()])) {
                 $vosForRegistration[$vo->getShortName()] = $vo;
             }
-            array_push($groupsForRegistration, $group);
+            $groupsForRegistration[] = $group;
         }
     }
 }

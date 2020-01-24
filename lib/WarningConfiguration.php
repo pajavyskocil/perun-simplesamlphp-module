@@ -39,6 +39,7 @@ abstract class WarningConfiguration
     /**
      * Function returns the instance of WarningConfiguration
      * @return WarningConfigurationConfig|WarningConfigurationFile|WarningConfigurationUrl
+     * @throws Exception
      */
     public static function getInstance()
     {
@@ -46,16 +47,20 @@ abstract class WarningConfiguration
         $source = $configuration->getString(self::WARNING_SOURCE);
         if ($source === 'CONFIG') {
             return new WarningConfigurationConfig();
-        } elseif ($source === 'FILE') {
-            return new WarningConfigurationFile();
-        } elseif ($source === 'URL') {
-            return new WarningConfigurationUrl();
-        } else {
-            Logger::warning("perun:WarningConfiguration: missing or invalid disco.warning.source in module_perun.php");
-            throw new Exception(
-                "perun:WarningConfiguration: missing or invalid disco.warning.source in module_perun.php"
-            );
         }
+
+        if ($source === 'FILE') {
+            return new WarningConfigurationFile();
+        }
+
+        if ($source === 'URL') {
+            return new WarningConfigurationUrl();
+        }
+
+        Logger::warning('perun:WarningConfiguration: missing or invalid disco.warning.source in module_perun.php');
+        throw new Exception(
+            'perun:WarningConfiguration: missing or invalid disco.warning.source in module_perun.php'
+        );
     }
 
     /**

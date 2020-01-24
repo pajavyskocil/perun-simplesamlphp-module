@@ -3,9 +3,7 @@
 namespace SimpleSAML\Module\perun\Auth\Process;
 
 use SimpleSAML\Auth\ProcessingFilter;
-use SimpleSAML\Module\perun\Adapter;
 use SimpleSAML\Error\Exception;
-use SimpleSAML\Logger;
 use SimpleSAML\Module;
 use SimpleSAML\Module\perun\UpdateUESThread;
 

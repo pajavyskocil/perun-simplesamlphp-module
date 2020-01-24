@@ -79,7 +79,7 @@ try {
             }
             if ($valueFromIdP !== $attribute['value']) {
                 $attribute['value'] = $valueFromIdP;
-                array_push($attributesToUpdate, $attribute);
+                $attributesToUpdate[] = $attribute;
             }
         }
     }
@@ -91,7 +91,7 @@ try {
     $adapter->updateUserExtSourceLastAccess($userExtSource['id']);
 
     Logger::debug('perun/www/updateUes.php: Updating UES for user with userId: ' . $perunUserId . ' was successful.');
-} catch (\Exception $ex) {
+} catch (Exception $ex) {
     Logger::warning(
         'perun/www/updateUes.php: Updating UES for user with userId: ' . $perunUserId . ' was not successful: ' .
         $ex->getMessage()

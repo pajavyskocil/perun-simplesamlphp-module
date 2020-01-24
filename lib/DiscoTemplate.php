@@ -3,6 +3,7 @@
 namespace SimpleSAML\Module\perun;
 
 use SimpleSAML\Configuration;
+use SimpleSAML\XHTML\Template;
 
 /**
  * This class extends basic SimpleSAML template class. It provides some utils functions used in templates
@@ -12,7 +13,7 @@ use SimpleSAML\Configuration;
  *
  * @author Ondrej Velisek <ondrejvelisek@gmail.com>
  */
-class DiscoTemplate extends \SimpleSAML\XHTML\Template
+class DiscoTemplate extends Template
 {
 
     /**
@@ -46,9 +47,9 @@ class DiscoTemplate extends \SimpleSAML\XHTML\Template
     {
         if (isset($this->data['idplist'][$tag])) {
             return $this->data['idplist'][$tag];
-        } else {
-            return [];
         }
+
+        return [];
     }
 
     /**
@@ -82,7 +83,7 @@ class DiscoTemplate extends \SimpleSAML\XHTML\Template
     {
         $allIdps = [];
         foreach ($this->data['idplist'] as $tag => $idplist) {
-            $allIdps = array_merge($idplist, $allIdps);
+            $allIdps = $idplist + $allIdps;
         }
         return $allIdps;
     }
@@ -148,9 +149,9 @@ class DiscoTemplate extends \SimpleSAML\XHTML\Template
         if (array_key_exists('name', $metadata)) {
             if (is_array($metadata['name'])) {
                 return $this->getTranslation($metadata['name']);
-            } else {
-                return $metadata['name'];
             }
+
+            return $metadata['name'];
         }
         return $metadata['entityid'];
     }

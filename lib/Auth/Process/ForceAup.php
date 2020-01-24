@@ -2,6 +2,8 @@
 
 namespace SimpleSAML\Module\perun\Auth\Process;
 
+use DateTime;
+use SimpleSAML\Auth\ProcessingFilter;
 use SimpleSAML\Error\Exception;
 use SimpleSAML\Module\perun\Adapter;
 use SimpleSAML\Module\perun\model;
@@ -25,7 +27,7 @@ use SimpleSAML\Utils\HTTP;
  *
  * It relies on PerunIdentity filter. Configure it before this filter properly.
  */
-class ForceAup extends \SimpleSAML\Auth\ProcessingFilter
+class ForceAup extends ProcessingFilter
 {
 
     const UID_ATTR = 'uidAttr';
@@ -42,7 +44,6 @@ class ForceAup extends \SimpleSAML\Auth\ProcessingFilter
     private $perunVoAupAttr;
     private $perunFacilityReqAupsAttr;
     private $perunFacilityVoShortNames;
-    private $interface;
 
     /**
      * @var Adapter
@@ -93,12 +94,13 @@ class ForceAup extends \SimpleSAML\Auth\ProcessingFilter
         $this->perunVoAupAttr = (string)$config[self::PERUN_VO_AUP_ATTR];
         $this->perunFacilityReqAupsAttr = (string)$config[self::PERUN_FACILITY_REQ_AUPS_ATTR];
         $this->perunFacilityVoShortNames = (string)$config[self::PERUN_FACILITY_VO_SHORT_NAMES];
-        $this->interface = (string)$config[self::INTERFACE_PROPNAME];
-        $this->adapter = Adapter::getInstance($this->interface);
+        $interface = (string)$config[self::INTERFACE_PROPNAME];
+        $this->adapter = Adapter::getInstance($interface);
     }
 
     /**
      * @param $request
+     * @throws Exception
      */
     public function process(&$request)
     {
@@ -131,7 +133,7 @@ class ForceAup extends \SimpleSAML\Auth\ProcessingFilter
 
             if ($facilityAups !== null) {
                 foreach ($facilityAups as $facilityAup) {
-                    array_push($requiredAups, $facilityAup);
+                    $requiredAups[] = $facilityAup;
                 }
             }
 
@@ -142,7 +144,7 @@ class ForceAup extends \SimpleSAML\Auth\ProcessingFilter
 
             if ($facilityVoShortNames !== null) {
                 foreach ($facilityVoShortNames as $facilityVoShortName) {
-                    array_push($voShortNames, $facilityVoShortName);
+                    $voShortNames[] = $facilityVoShortName;
                 }
             }
 
@@ -228,12 +230,13 @@ class ForceAup extends \SimpleSAML\Auth\ProcessingFilter
     /**
      * @param array $aups
      * @return aup with the latest date
+     * @throws \Exception
      */
     public function getLatestAup(&$aups)
     {
         $latest_aup = $aups[0];
         foreach ($aups as $aup) {
-            if (new \DateTime($latest_aup->date) < new \DateTime($aup->date)) {
+            if (new DateTime($latest_aup->date) < new DateTime($aup->date)) {
                 $latest_aup = $aup;
             }
         }
@@ -243,6 +246,7 @@ class ForceAup extends \SimpleSAML\Auth\ProcessingFilter
     /**
      * @param string[] $voShortNames
      * @return array
+     * @throws Exception
      */
     public function getVoAups(&$voShortNames)
     {
@@ -250,7 +254,7 @@ class ForceAup extends \SimpleSAML\Auth\ProcessingFilter
         foreach ($voShortNames as $voShortName) {
             $vo = $this->adapter->getVoByShortName($voShortName);
             if ($vo !== null) {
-                array_push($vos, $vo);
+                $vos[] = $vo;
             }
         }
 

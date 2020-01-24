@@ -28,18 +28,15 @@ class Disco extends PowerIdPDisco
     const PROPNAME_PREFIX = 'disco.removeAuthnContextClassRefPrefix';
 
     private $originalsp;
-    private $whitelist;
-    private $greylist;
-    private $service;
     private $authnContextClassRef = [];
 
     public function __construct(array $metadataSets, $instance)
     {
         if (!array_key_exists('return', $_GET)) {
             throw new \Exception('Missing parameter: return');
-        } else {
-            $returnURL = HTTP::checkURLAllowed($_GET['return']);
         }
+
+        $returnURL = HTTP::checkURLAllowed($_GET['return']);
 
         parse_str(parse_url($returnURL)['query'], $query);
 
@@ -58,14 +55,15 @@ class Disco extends PowerIdPDisco
                 $e = explode("=", $returnURL)[0];
                 $newReturnURL = $e . "=" . urlencode($id);
                 $_GET['return'] = $newReturnURL;
+
+                if (isset($state['SPMetadata'])) {
+                    $this->originalsp = $state['SPMetadata'];
+                }
             }
+
         }
 
         parent::__construct($metadataSets, $instance);
-
-        if (isset($state) && isset($state['SPMetadata'])) {
-            $this->originalsp = $state['SPMetadata'];
-        }
     }
 
     /**
@@ -91,9 +89,9 @@ class Disco extends PowerIdPDisco
         $preferredIdP = array_key_exists($preferredIdP, $idpList)
             ? $preferredIdP : null;
 
-        if (sizeof($idpList) === 1) {
+        if (count($idpList) === 1) {
             $idp = array_keys($idpList)[0];
-            $url = Disco::buildContinueUrl(
+            $url = self::buildContinueUrl(
                 $this->spEntityId,
                 $this->returnURL,
                 $this->returnIdParam,
@@ -262,10 +260,10 @@ class Disco extends PowerIdPDisco
                     $unset = false;
                 }
             }
-            if (isset($idp['CoCo']) and $idp['CoCo'] === true) {
+            if (isset($idp['CoCo']) && $idp['CoCo'] === true) {
                 $unset = false;
             }
-            if (isset($idp['RaS']) and $idp['RaS'] === true) {
+            if (isset($idp['RaS']) && $idp['RaS'] === true) {
                 $unset = false;
             }
 
@@ -321,13 +319,11 @@ class Disco extends PowerIdPDisco
         $returnIDParam,
         $idpEntityId
     ) {
-        $url = '?' .
+        return '?' .
             'entityID=' . urlencode($entityID) . '&' .
             'return=' . urlencode($return) . '&' .
             'returnIDParam=' . urlencode($returnIDParam) . '&' .
             'idpentityid=' . urlencode($idpEntityId);
-
-        return $url;
     }
 
     /**
@@ -341,17 +337,16 @@ class Disco extends PowerIdPDisco
         $return,
         $returnIDParam
     ) {
-        $url = '?' .
+        return '?' .
             'entityID=' . urlencode($entityID) . '&' .
             'return=' . urlencode($return) . '&' .
             'returnIDParam=' . urlencode($returnIDParam);
-
-        return $url;
     }
 
     /**
      * This method remove all AuthnContextClassRef which start with prefix from configuration
      * @param $state
+     * @throws \Exception
      */
     public function removeAuthContextClassRefWithPrefix(&$state)
     {
@@ -365,7 +360,7 @@ class Disco extends PowerIdPDisco
         $array = [];
         foreach ($this->authnContextClassRef as $value) {
             if (!(substr($value, 0, strlen($prefix)) === $prefix)) {
-                array_push($array, $value);
+                $array[] = $value;
             }
         }
         if (!empty($array)) {
@@ -501,7 +496,7 @@ class Disco extends PowerIdPDisco
 
     public static function showEntriesScript()
     {
-        $script = '<script type="text/javascript">
+        return '<script type="text/javascript">
          $(document).ready(function() {
              $("#showEntries").click(function() {
                  $("#entries").show();
@@ -509,26 +504,23 @@ class Disco extends PowerIdPDisco
              });
          });
         </script>';
-        return $script;
     }
 
     public static function searchScript()
     {
 
-        $script = '<script type="text/javascript">
+        return '<script type="text/javascript">
 
         $(document).ready(function() { 
             $("#query").liveUpdate("#list");
         });
         
         </script>';
-
-        return $script;
     }
 
     public static function setFocus()
     {
-        $script = '<script type="text/javascript">
+        return '<script type="text/javascript">
 
         $(document).ready(function() {
             if ($("#last-used-idp")) {
@@ -537,7 +529,5 @@ class Disco extends PowerIdPDisco
         });
         
         </script>';
-
-        return $script;
     }
 }

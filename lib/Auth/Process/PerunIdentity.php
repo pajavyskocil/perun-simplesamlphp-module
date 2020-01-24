@@ -2,6 +2,7 @@
 
 namespace SimpleSAML\Module\perun\Auth\Process;
 
+use SimpleSAML\Auth\ProcessingFilter;
 use SimpleSAML\Module\perun\Adapter;
 use SimpleSAML\Module\perun\AdapterLdap;
 use SimpleSAML\Module\perun\AdapterRpc;
@@ -37,7 +38,7 @@ use SimpleSAML\Logger;
  * @author Michal Prochazka <michalp@ics.muni.cz>
  * @author Pavel Vyskocil <vyskocilpavel@muni.cz>
  */
-class PerunIdentity extends \SimpleSAML\Auth\ProcessingFilter
+class PerunIdentity extends ProcessingFilter
 {
     const UIDS_ATTR = 'uidsAttr';
     const VO_SHORTNAME = 'voShortName';
@@ -49,8 +50,6 @@ class PerunIdentity extends \SimpleSAML\Auth\ProcessingFilter
     const INTERFACE_PROPNAME = 'interface';
     const SOURCE_IDP_ENTITY_ID_ATTR = 'sourceIdPEntityIDAttr';
     const FORCE_REGISTRATION_TO_GROUPS = 'forceRegistrationToGroups';
-    const CHECK_GROUP_MEMBERSHIP = 'checkGroupMembership';
-    const ALLOW_REGISTRATION_TO_GROUPS = 'allowRegistrationToGroups';
     const PERUN_FACILITY_CHECK_GROUP_MEMBERSHIP_ATTR = 'facilityCheckGroupMembershipAttr';
     const PERUN_FACILITY_VO_SHORT_NAMES_ATTR = 'facilityVoShortNamesAttr';
     const PERUN_FACILITY_DYNAMIC_REGISTRATION_ATTR = 'facilityDynamicRegistrationAttr';
@@ -60,7 +59,7 @@ class PerunIdentity extends \SimpleSAML\Auth\ProcessingFilter
 
     private $uidsAttr;
     private $registerUrlBase;
-    private $registerUrl = null;
+    private $registerUrl;
     private $defaultRegisterUrl;
     private $voShortName;
     private $facilityVoShortNames = [];
@@ -68,7 +67,6 @@ class PerunIdentity extends \SimpleSAML\Auth\ProcessingFilter
     private $spEntityId;
     private $interface;
     private $checkGroupMembership = false;
-    private $forceRegistrationToGroups = false;
     private $allowRegistrationToGroups;
     private $dynamicRegistration;
     private $sourceIdPEntityIDAttr;
@@ -162,7 +160,6 @@ class PerunIdentity extends \SimpleSAML\Auth\ProcessingFilter
         $this->voShortName = $config[self::VO_SHORTNAME];
         $this->interface = (string)$config[self::INTERFACE_PROPNAME];
         $this->sourceIdPEntityIDAttr = $config[self::SOURCE_IDP_ENTITY_ID_ATTR];
-        $this->forceRegistrationToGroups = $config[self::FORCE_REGISTRATION_TO_GROUPS];
         $this->facilityCheckGroupMembershipAttr = (string)$config[self::PERUN_FACILITY_CHECK_GROUP_MEMBERSHIP_ATTR];
         $this->facilityDynamicRegistrationAttr = (string)$config[self::PERUN_FACILITY_DYNAMIC_REGISTRATION_ATTR];
         $this->facilityVoShortNamesAttr = (string)$config[self::PERUN_FACILITY_VO_SHORT_NAMES_ATTR];
@@ -182,7 +179,7 @@ class PerunIdentity extends \SimpleSAML\Auth\ProcessingFilter
 
         foreach ($this->uidsAttr as $uidAttr) {
             if (isset($request['Attributes'][$uidAttr][0])) {
-                array_push($uids, $request['Attributes'][$uidAttr][0]);
+                $uids[] = $request['Attributes'][$uidAttr][0];
             }
         }
         if (empty($uids)) {
@@ -227,7 +224,7 @@ class PerunIdentity extends \SimpleSAML\Auth\ProcessingFilter
                         'is not valid member of any assigned VO for SP with entityId: (' .
                         $this->spEntityId . ') and there are no VO for registration.'
                     );
-                    $this->unauthorized($request);
+                    self::unauthorized($request);
                 }
                 $this->register($request, $vosForRegistration);
             } else {
@@ -236,7 +233,7 @@ class PerunIdentity extends \SimpleSAML\Auth\ProcessingFilter
                     ' is not member of any assigned group for resource (' . $this->spEntityId .
                     ') and registration to groups is disabled.'
                 );
-                $this->unauthorized($request);
+                self::unauthorized($request);
             }
         }
 
@@ -349,7 +346,7 @@ class PerunIdentity extends \SimpleSAML\Auth\ProcessingFilter
         $stateId = State::saveState($request, 'perun:PerunIdentity');
 
         foreach ($vosForRegistration as $vo) {
-            array_push($vosId, $vo->getId());
+            $vosId[] = $vo->getId();
         }
 
         HTTP::redirectTrustedURL(
@@ -484,6 +481,7 @@ class PerunIdentity extends \SimpleSAML\Auth\ProcessingFilter
      * @param $request
      * @param User $user
      * @param $uids
+     * @throws Exception
      */
     protected function checkMemberStateDefaultVo($request, $user, $uids)
     {
@@ -511,7 +509,7 @@ class PerunIdentity extends \SimpleSAML\Auth\ProcessingFilter
                     'Member status for perun user with identity/ies: ' . implode(',', $uids) . ' ' .
                     'was not VALID and it is not possible to get more info (RPC is not working)'
                 );
-                $this->unauthorized($request);
+                self::unauthorized($request);
             }
         }
 
@@ -539,7 +537,7 @@ class PerunIdentity extends \SimpleSAML\Auth\ProcessingFilter
                 'Member status for perun user with identity/ies: ' . implode(',', $uids) . ' ' .
                 'was INVALID/SUSPENDED/DISABLED. '
             );
-            $this->unauthorized($request);
+            self::unauthorized($request);
         }
     }
 
@@ -561,23 +559,23 @@ class PerunIdentity extends \SimpleSAML\Auth\ProcessingFilter
             try {
                 $member = $this->rpcAdapter->getMemberByUser($user, $vo);
                 Logger::debug('Member:' . print_r($member, true));
-                array_push($members, $member);
+                $members[] = $member;
             } catch (\Exception $exception) {
-                array_push($vosForRegistration, $vo);
+                $vosForRegistration[] = $vo;
                 Logger::warning('perun:PerunIdentity: ' . $exception);
             }
         }
 
         foreach ($members as $member) {
-            if ($member->getStatus() === Member::VALID ||
-                $member->getStatus() === Member::EXPIRED) {
-                array_push($vosIdForRegistration, $member->getVoId());
+            $status = $member->getStatus();
+            if (in_array($status,Member::VALID,Member::EXPIRED)) {
+                $vosIdForRegistration[] = $member->getVoId();
             }
         }
 
         foreach ($vos as $vo) {
             if (in_array($vo->getId(), $vosIdForRegistration)) {
-                array_push($vosForRegistration, $vo);
+                $vosForRegistration[] = $vo;
             }
         }
         Logger::debug('VOs for registration:  ' . print_r($vosForRegistration, true));
@@ -594,7 +592,7 @@ class PerunIdentity extends \SimpleSAML\Auth\ProcessingFilter
         foreach ($this->facilityVoShortNames as $voShortName) {
             try {
                 $vo = $this->adapter->getVoByShortName($voShortName);
-                array_push($vos, $vo);
+                $vos[] = $vo;
             } catch (\Exception $ex) {
                 Logger::warning('perun:PerunIdentity: ' . $ex);
             }

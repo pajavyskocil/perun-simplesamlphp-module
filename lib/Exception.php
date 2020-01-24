@@ -2,6 +2,8 @@
 
 namespace SimpleSAML\Module\perun;
 
+use SimpleSAML\Error\Exception as SimpleSAMLException;
+
 /**
  * Wrapper of Perun exception returned from RPC.
  *
@@ -9,7 +11,7 @@ namespace SimpleSAML\Module\perun;
  *
  * @author Ondrej Velisek <ondrejvelisek@gmail.com>
  */
-class Exception extends \SimpleSAML\Error\Exception
+class Exception extends SimpleSAMLException
 {
     private $id;
     private $name;

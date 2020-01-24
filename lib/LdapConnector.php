@@ -55,7 +55,7 @@ class LdapConnector
     public function searchForEntity($base, $filter, $attrNames = null)
     {
 
-        $entries = self::search($base, $filter, $attrNames);
+        $entries = $this->search($base, $filter, $attrNames);
 
         if (empty($entries)) {
             Logger::debug(
@@ -81,11 +81,12 @@ class LdapConnector
      * @param string $filter
      * @param array $attrNames attributes to be returned. If null all attrs are returned.
      * @return array of entities. Each entity is associative array.
+     * @throws Exception
      */
     public function searchForEntities($base, $filter, $attrNames = null)
     {
 
-        $entries = self::search($base, $filter, $attrNames);
+        $entries = $this->search($base, $filter, $attrNames);
 
         if (empty($entries)) {
             Logger::debug(
@@ -135,7 +136,8 @@ class LdapConnector
 
     /**
      * remove unnecessary meta information from entry (e.g. 'count' field) and simplify entry structure
-     * @param $entry
+     * @param $conn
+     * @param $resultId
      * @return array associative array where key is attr name and value is array of attr values.
      */
     private static function getSimplifiedEntries($conn, $resultId)
@@ -157,7 +159,7 @@ class LdapConnector
                 $attrName = ldap_next_attribute($conn, $entryId);
             }
 
-            array_push($entries, $entry);
+            $entries[] = $entry;
             $entryId = ldap_next_entry($conn, $entryId);
         }
 

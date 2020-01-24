@@ -3,7 +3,6 @@
 use SimpleSAML\Module;
 use SimpleSAML\Configuration;
 use SimpleSAML\Logger;
-use SimpleSAML\Error\Exception;
 use SimpleSAML\Module\perun\Disco;
 use SimpleSAML\Utils\HTTP;
 use SimpleSAML\Module\perun\DiscoTemplate;

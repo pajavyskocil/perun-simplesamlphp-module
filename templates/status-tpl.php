@@ -5,9 +5,10 @@
  * @author Pavel Vyskocil <vyskocilpavel@muni.cz>
  */
 
+use SimpleSAML\Configuration;
 use SimpleSAML\Module\perun\StatusConnector;
 
-$config = SimpleSAML_Configuration::getInstance();
+$config = Configuration::getInstance();
 $instanceName = $config->getString('instance_name', '');
 
 $this->data['header'] = $instanceName . ' ' .  $this->t('{perun:status:aai}') . ' ' . $this->t('{perun:status:header}');

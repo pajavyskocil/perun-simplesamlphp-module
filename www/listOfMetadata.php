@@ -14,7 +14,7 @@ foreach ($filteredMetadata as $metadata) {
     $item = [];
     $item['entityid'] = $metadata['entityid'];
     $item['name'] = $metadata['name'];
-    array_push($data, $item);
+    $data[] = $item;
 }
 
 header('Content-type: application/json');

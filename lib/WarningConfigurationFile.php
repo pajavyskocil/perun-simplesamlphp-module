@@ -2,7 +2,6 @@
 
 namespace SimpleSAML\Module\perun;
 
-use SimpleSAML\Error\Exception;
 use SimpleSAML\Logger;
 use SimpleSAML\Configuration;
 
@@ -23,10 +22,10 @@ class WarningConfigurationFile extends WarningConfiguration
         try {
             $file = $config->getString(WarningConfiguration::WARNING_FILE);
 
-            set_error_handler(function () {
+            set_error_handler(static function () {
                 Logger::warning(
-                    "perun:WarningConfigurationFile: " .
-                    "missing or invalid disco.warning.file parameter in module_perun.php"
+                    'perun:WarningConfigurationFile: ' .
+                    'missing or invalid disco.warning.file parameter in module_perun.php'
                 );
             });
 
@@ -35,7 +34,7 @@ class WarningConfigurationFile extends WarningConfiguration
             $data = json_decode($json_data, true);
         } catch (\Exception $ex) {
             Logger::warning(
-                "perun:WarningConfigurationFile: missing or invalid disco.warning.file parameter in module_perun.php"
+                'perun:WarningConfigurationFile: missing or invalid disco.warning.file parameter in module_perun.php'
             );
         }
 
@@ -44,15 +43,15 @@ class WarningConfigurationFile extends WarningConfiguration
 
     public function getWarningAttributes()
     {
-        $data = self::getSourceOfWarningAttributes();
+        $data = $this->getSourceOfWarningAttributes();
 
         if ($data !== null) {
             if (isset($data[WarningConfiguration::WARNING_IS_ON])) {
                 $this->warningIsOn = $data[WarningConfiguration::WARNING_IS_ON];
             } else {
                 Logger::warning(
-                    "perun:warningConfigurationFile: " .
-                    "missing or invalid warningIsOn parameter in file with warning configuration"
+                    'perun:warningConfigurationFile: ' .
+                    'missing or invalid warningIsOn parameter in file with warning configuration'
                 );
             }
 
@@ -65,8 +64,8 @@ class WarningConfigurationFile extends WarningConfiguration
                 }
             } else {
                 Logger::warning(
-                    "perun:warningConfigurationFile: " .
-                    "missing or invalid warningType parameter in file with warning configuration"
+                    'perun:warningConfigurationFile: ' .
+                    'missing or invalid warningType parameter in file with warning configuration'
                 );
             }
 
@@ -74,8 +73,8 @@ class WarningConfigurationFile extends WarningConfiguration
                 $this->warningTitle = $data[WarningConfiguration::WARNING_TITLE];
             } else {
                 Logger::warning(
-                    "perun:warningConfigurationFile: " .
-                    "missing or invalid warningTitle parameter in file with warning configuration"
+                    'perun:warningConfigurationFile: ' .
+                    'missing or invalid warningTitle parameter in file with warning configuration'
                 );
             }
 
@@ -83,8 +82,8 @@ class WarningConfigurationFile extends WarningConfiguration
                 $this->warningText = $data[WarningConfiguration::WARNING_TEXT];
             } else {
                 Logger::warning(
-                    "perun:warningConfigurationFile: " .
-                    "missing or invalid warningText parameter in file with warning configuration"
+                    'perun:warningConfigurationFile: ' .
+                    'missing or invalid warningText parameter in file with warning configuration'
                 );
             }
         }

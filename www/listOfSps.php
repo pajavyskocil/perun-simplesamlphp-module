@@ -4,7 +4,6 @@ use SimpleSAML\Module\perun\AdapterRpc;
 use SimpleSAML\Configuration;
 use SimpleSAML\XHTML\Template;
 use SimpleSAML\Error\Exception;
-use SimpleSAML\Module\perun\ListOfSps;
 
 const CONFIG_FILE_NAME = 'module_perun.php';
 const PROXY_IDENTIFIER = 'listOfSps.proxyIdentifier';
@@ -75,21 +74,21 @@ $facilities
 
 $attrNames = [];
 
-array_push($attrNames, $perunSaml2EntityIdAttr);
+$attrNames[] = $perunSaml2EntityIdAttr;
 if (!empty($perunOidcClientIdAttr)) {
-    array_push($attrNames, $perunOidcClientIdAttr);
+    $attrNames[] = $perunOidcClientIdAttr;
 }
 if (!empty($perunLoginURLAttr)) {
-    array_push($attrNames, $perunLoginURLAttr);
+    $attrNames[] = $perunLoginURLAttr;
 }
 if (!empty($perunTestSpAttr)) {
-    array_push($attrNames, $perunTestSpAttr);
+    $attrNames[] = $perunTestSpAttr;
 }
 if (!empty($perunShowOnServiceListAttr)) {
-    array_push($attrNames, $perunShowOnServiceListAttr);
+    $attrNames[] = $perunShowOnServiceListAttr;
 }
 foreach ($attributesDefinitions as $attributeDefinition) {
-    array_push($attrNames, $attributeDefinition);
+    $attrNames[] = $attributeDefinition;
 }
 
 $samlServices = [];
@@ -142,7 +141,7 @@ foreach ($attrNames as $attrName) {
         && $attrName !== $perunOidcClientIdAttr
         && $attrName !== $perunSaml2EntityIdAttr
     ) {
-        array_push($attributesToShow, $attrName);
+        $attributesToShow[] = $attrName;
     }
 }
 
@@ -176,7 +175,7 @@ if (isset($_GET['output']) && $_GET['output'] === 'json') {
             $key = end($parsedName);
             $a[$key] = $service['facilityAttributes'][$attr]['value'];
         }
-        array_push($json['services'], $a);
+        $json['services'][] = $a;
     }
 
     header('Content-type: application/json');

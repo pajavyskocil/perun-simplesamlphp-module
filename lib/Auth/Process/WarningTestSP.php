@@ -2,6 +2,7 @@
 
 namespace SimpleSAML\Module\perun\Auth\Process;
 
+use SimpleSAML\Auth\ProcessingFilter;
 use SimpleSAML\Auth\State;
 use SimpleSAML\Module;
 use SimpleSAML\Utils\HTTP;
@@ -11,13 +12,8 @@ use SimpleSAML\Utils\HTTP;
  *
  * Warns user that he/she is accessing to the testing SP
  */
-class WarningTestSP extends \SimpleSAML\Auth\ProcessingFilter
+class WarningTestSP extends ProcessingFilter
 {
-
-    public function __construct($config, $reserved)
-    {
-        parent::__construct($config, $reserved);
-    }
 
     public function process(&$request)
     {

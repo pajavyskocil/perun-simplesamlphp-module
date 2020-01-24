@@ -15,13 +15,12 @@ class WarningConfigurationConfig extends WarningConfiguration
 {
     public function getSourceOfWarningAttributes()
     {
-        $config = Configuration::getConfig(WarningConfiguration::CONFIG_FILE_NAME);
-        return $config;
+        return Configuration::getConfig(WarningConfiguration::CONFIG_FILE_NAME);
     }
 
     public function getWarningAttributes()
     {
-        $data = self::getSourceOfWarningAttributes();
+        $data = $this->getSourceOfWarningAttributes();
 
         if ($data !== null) {
             $this->warningIsOn = $data->getBoolean(WarningConfiguration::WARNING_IS_ON, false);
