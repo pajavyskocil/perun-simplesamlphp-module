@@ -12,6 +12,7 @@ use SimpleSAML\Module\perun\model\Member;
 use SimpleSAML\Error\Exception;
 use SimpleSAML\Logger;
 use SimpleSAML\Module\perun\Exception as PerunException;
+use SimpleSAML\Module\perun;
 
 /**
  * Class sspmod_perun_AdapterRpc
@@ -229,9 +230,11 @@ class AdapterRpc extends Adapter
 
     public function getUserAttributes($user, $attrNames)
     {
+        $perunAttrNames = perun\AttributeUtils::getAttrNames($attrNames, self::RPC);
+
         $perunAttrs = $this->connector->get('attributesManager', 'getAttributes', [
             'user' => $user->getId(),
-            'attrNames' => $attrNames,
+            'attrNames' => $perunAttrNames,
         ]);
 
         $attributes = [];
@@ -242,6 +245,18 @@ class AdapterRpc extends Adapter
         }
 
         return $attributes;
+    }
+
+    public function getUserAttributesValues($user, $attributes)
+    {
+        $perunAttrs = $this->getUserAttributes($user, $attributes);
+        $attributesValues = [];
+
+        foreach ($perunAttrs as $perunAttr) {
+            $attributesValues[$perunAttr] = $perunAttr['value'];
+        }
+
+        return $attributesValues;
     }
 
     public function getEntitylessAttribute($attrName)
@@ -272,9 +287,11 @@ class AdapterRpc extends Adapter
 
     public function getVoAttributes($vo, $attrNames)
     {
+        $perunAttrNames = perun\AttributeUtils::getAttrNames($attrNames, self::RPC);
+
         $perunAttrs = $this->connector->get('attributesManager', 'getAttributes', [
             'vo' => $vo->getId(),
-            'attrNames' => $attrNames,
+            'attrNames' => $perunAttrNames,
         ]);
 
         $attributes = [];
@@ -285,6 +302,18 @@ class AdapterRpc extends Adapter
         }
 
         return $attributes;
+    }
+
+    public function getVoAttributesValues($vo, $attributes)
+    {
+        $perunAttrs = $this->getVoAttributes($vo, $attributes);
+        $attributesValues = [];
+
+        foreach ($perunAttrs as $perunAttr) {
+            $attributesValues[$perunAttr] = $perunAttr['value'];
+        }
+
+        return $attributesValues;
     }
 
     public function getFacilityAttribute($facility, $attrName)
@@ -427,9 +456,11 @@ class AdapterRpc extends Adapter
 
     public function getFacilityAttributes($facility, $attrNames)
     {
+        $perunAttrNames = perun\AttributeUtils::getAttrNames($attrNames, self::RPC);
+
         $perunAttrs = $this->connector->get('attributesManager', 'getAttributes', [
             'facility' => $facility->getId(),
-            'attrNames' => $attrNames,
+            'attrNames' => $perunAttrNames,
         ]);
         $attributes = [];
         foreach ($perunAttrs as $perunAttr) {
@@ -445,17 +476,15 @@ class AdapterRpc extends Adapter
         return $attributes;
     }
 
-    public function getFacilityAttributesValues($facility, $attrNames)
+    public function getFacilityAttributesValues($facility, $attributes)
     {
-        $perunAttrs = $this->connector->get('attributesManager', 'getAttributes', [
-            'facility' => $facility->getId(),
-            'attrNames' => $attrNames,
-        ]);
+        $perunAttrs = $this->getFacilityAttributes($facility, $attributes);
         $attributesValues = [];
-        foreach ($perunAttrs as $perunAttr) {
-            $perunAttrName = $perunAttr['namespace'] . ':' . $perunAttr['friendlyName'];
-            $attributesValues[$perunAttrName] = $perunAttr['value'];
+
+        foreach ($perunAttrs as $key => $value) {
+            $attributesValues[$key] = $value['value'];
         }
+
         return $attributesValues;
     }
 

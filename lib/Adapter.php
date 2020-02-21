@@ -98,6 +98,13 @@ abstract class Adapter
     abstract public function getUserAttributes($user, $attrNames);
 
     /**
+     * @param User $user
+     * @param array $attributes of internal attribute names
+     * @return array of attribute name -> attribute value
+     */
+    abstract public function getUserAttributesValues($user, $attributes);
+
+    /**
      * @param string $attrName
      * @return map of all entityless attributes with attrName (for all namespaces of same attribute).
      */
@@ -110,6 +117,13 @@ abstract class Adapter
      * and values are attr values (can be null, string, array, associative array)* @return
      */
     abstract public function getVoAttributes($vo, $attrNames);
+
+    /**
+     * @param Vo $vo
+     * @param array $attributes of internal attribute names
+     * @return array of attribute name -> attribute value
+     */
+    abstract public function getVoAttributesValues($vo, $attributes);
 
     /**
      * @param Facility $facility
@@ -146,10 +160,10 @@ abstract class Adapter
 
     /**
      * @param Facility $facility
-     * @param $attrNames array string $attrNames
+     * @param $attributes array of internal attribute names
      * @return array of attribute name -> attribute value
      */
-    abstract public function getFacilityAttributesValues($facility, $attrNames);
+    abstract public function getFacilityAttributesValues($facility, $attributes);
 
     /**
      * @param $extSourceName string name of ext source

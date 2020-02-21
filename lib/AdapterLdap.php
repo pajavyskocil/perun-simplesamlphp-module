@@ -3,6 +3,7 @@
 namespace SimpleSAML\Module\perun;
 
 use SimpleSAML\Configuration;
+use SimpleSAML\Module\perun\Auth\Process\AttributeUtils;
 use SimpleSAML\Module\perun\model\User;
 use SimpleSAML\Module\perun\model\Group;
 use SimpleSAML\Module\perun\model\Vo;
@@ -10,6 +11,7 @@ use SimpleSAML\Module\perun\model\Member;
 use SimpleSAML\Module\perun\model\Facility;
 use SimpleSAML\Error\Exception;
 use SimpleSAML\Logger;
+use SimpleSAML\Module\perun;
 
 /**
  * Class AdapterLdap
@@ -34,8 +36,11 @@ class AdapterLdap extends Adapter
     const DESCRIPTION = 'description';
     const CAPABILITIES = 'capabilities';
     const ASSIGNED_GROUP_ID = 'assignedGroupId';
+    const TYPE_BOOL = 'bool';
+    const TYPE_MAP = 'map';
 
     private $ldapBase;
+    private $fallbackAdapter;
 
     protected $connector;
 
@@ -53,6 +58,7 @@ class AdapterLdap extends Adapter
         $this->ldapBase = $conf->getString(self::LDAP_BASE);
 
         $this->connector = new LdapConnector($ldapHostname, $ldapUser, $ldapPassword);
+        $this->fallbackAdapter = new AdapterRpc();
     }
 
     public function getPerunUser($idpEntityId, $uids)
@@ -228,6 +234,33 @@ class AdapterLdap extends Adapter
         return $attributes;
     }
 
+    public function getUserAttributesValues($user, $attributes)
+    {
+        $attrTypeMap = perun\AttributeUtils::createAttrNameTypeMap(
+            $attributes,
+            self::LDAP
+        );
+
+        $perunAttrs = $this->connector->searchForEntities(
+            $this->ldapBase,
+            '(&(objectClass=perunUser)(perunUserId=' . $user->getId() . '))',
+            $attributes
+        );
+
+        $attributesValues = [];
+
+        foreach (array_keys($attrTypeMap) as $attrName) {
+            $attributesValues[$attrName] = $this->setAttrValue($attrTypeMap, $perunAttrs[0], $attrName);
+        }
+
+        return $attributesValues;
+    }
+
+    public function getFacilitiesByEntityId($spEntityId)
+    {
+        return $this->fallbackAdapter->getFacilitiesByEntityId($spEntityId);
+    }
+
     public function getFacilityByEntityId($spEntityId)
     {
         $ldapResult = $this->connector->searchForEntity(
@@ -255,58 +288,91 @@ class AdapterLdap extends Adapter
 
     public function getEntitylessAttribute($attrName)
     {
-        throw new BadMethodCallException('NotImplementedException');
-        // TODO: Implement getEntitylessAttribute() method.
+        return $this->fallbackAdapter->getEntitylessAttribute($attrName);
     }
 
     public function getVoAttributes($vo, $attrNames)
     {
-        throw new BadMethodCallException('NotImplementedException');
-        // TODO: Implement getVoAttribute() method.
+        return $this->fallbackAdapter->getVoAttributes($vo, $attrNames);
+    }
+
+    public function getVoAttributesValues($vo, $attributes)
+    {
+        $attrTypeMap = perun\AttributeUtils::createAttrNameTypeMap(
+            $attributes,
+            self::LDAP
+        );
+
+        $perunAttrs = $this->connector->searchForEntities(
+            $this->ldapBase,
+            '(&(objectClass=perunVO)(perunVoId=' . $vo->getId() . '))',
+            $attributes
+        );
+
+        $attributesValues = [];
+
+        foreach (array_keys($attrTypeMap) as $attrName) {
+            $attributesValues[$attrName] = $this->setAttrValue($attrTypeMap, $perunAttrs[0], $attrName);
+        }
+
+        return $attributesValues;
     }
 
     public function getFacilityAttribute($facility, $attrName)
     {
-        throw new BadMethodCallException('NotImplementedException');
-        // TODO: Implement getFacilityAttribute() method.
+        return $this->fallbackAdapter->getFacilityAttribute($facility, $attrName);
     }
 
     public function searchFacilitiesByAttributeValue($attribute)
     {
-        throw new BadMethodCallException('NotImplementedException');
-        // TODO: Implement searchFacilitiesByAttributeValue() method.
+        return $this->fallbackAdapter->searchFacilitiesByAttributeValue($attribute);
     }
 
     public function getFacilityAttributes($facility, $attrNames)
     {
-        throw new BadMethodCallException('NotImplementedException');
-        // TODO: Implement getFacilityAttributes() method.
+        return $this->fallbackAdapter->getFacilityAttributes($facility, $attrNames);
     }
 
-    public function getFacilityAttributesValues($facility, $attrNames)
+    public function getFacilityAttributesValues($facility, $attributes)
     {
-        throw new BadMethodCallException('NotImplementedException');
-        // TODO: Implement getFacilityAttributesValues() method.
+        $attrTypeMap = perun\AttributeUtils::createAttrNameTypeMap(
+            $attributes,
+            self::LDAP
+        );
+
+        $perunAttrs = $this->connector->searchForEntities(
+            $this->ldapBase,
+            '(&(objectClass=perunFacility)(perunFacilityId=' . $facility->getId() . '))',
+            $attributes
+        );
+
+        $attributesValues = [];
+
+        foreach (array_keys($attrTypeMap) as $attrName) {
+            $attributesValues[$attrName] = $this->setAttrValue($attrTypeMap, $perunAttrs[0], $attrName);
+        }
+
+        return $attributesValues;
     }
 
     public function getUserExtSource($extSourceName, $extSourceLogin)
     {
-        // TODO: Implement getUserExtSource() method.
+        return $this->fallbackAdapter->getUserExtSource($extSourceName, $extSourceLogin);
     }
 
     public function updateUserExtSourceLastAccess($userExtSource)
     {
-        // TODO: Implement updateUserExtSourceLastAccess() method.
+        $this->fallbackAdapter->updateUserExtSourceLastAccess($userExtSource);
     }
 
     public function getUserExtSourceAttributes($userExtSourceId, $attrNames)
     {
-        // TODO: Implement getAttributes() method.
+        return $this->fallbackAdapter->getUserExtSourceAttributes($userExtSourceId, $attrNames);
     }
 
     public function setUserExtSourceAttributes($userExtSourceId, $attributes)
     {
-        // TODO: Implement setAttributes() method.
+        $this->fallbackAdapter->setUserExtSourceAttributes($userExtSourceId, $attributes);
     }
 
     public function getUsersGroupsOnFacility($spEntityId, $userId)
@@ -417,5 +483,20 @@ class AdapterLdap extends Adapter
         }
 
         return $resourceCapabilities;
+    }
+
+    private function setAttrValue($attrsNameTypeMap, $attrsFromLdap, $attr)
+    {
+        if (!array_key_exists($attr, $attrsFromLdap) && $attrsNameTypeMap[$attr] === self::TYPE_BOOL) {
+            return false;
+        } elseif (!array_key_exists($attr, $attrsFromLdap) && $attrsNameTypeMap[$attr] === self::TYPE_MAP) {
+            return [];
+        } elseif (array_key_exists($attr, $attrsFromLdap) && $attrsNameTypeMap[$attr] === self::TYPE_MAP) {
+            return $attrsFromLdap[$attr];
+        } elseif (array_key_exists($attr, $attrsFromLdap)) {
+            return $attrsFromLdap[$attr][0];
+        } else {
+            return null;
+        }
     }
 }

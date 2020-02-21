@@ -2,8 +2,13 @@
 All notable changes to this project will be documented in this file.
  
 ## [Unreleased]
+#### Added
+- Added some methods for getting values to Adapter.php
+- Added fallback to RPC for methods we're not able to run in LDAP
+
 #### Changed
 - Releasing forwardedEduPersonEntitlement is now optional (forwardedEduPersonEntitlement are released by default)
+- Changed the way of getting attribute names for interfaces: through internal attribute names in perun_attributes.php config
 
 #### Fixed
 - Fixed problem with getting group without description from LDAP 
