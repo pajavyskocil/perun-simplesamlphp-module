@@ -4,13 +4,13 @@ namespace SimpleSAML\Module\perun\Auth\Process;
 
 use SimpleSAML\Error\Exception;
 use SimpleSAML\Module\perun\Adapter;
+use SimpleSAML\Module\perun\AttributeUtils;
 use SimpleSAML\Module\perun\model;
 use SimpleSAML\Logger;
 use SimpleSAML\Auth\State;
 use SimpleSAML\Module;
 use SimpleSAML\Utils\HTTP;
 use SimpleSAML\Configuration;
-use SimpleSAML\Module\perun;
 
 /**
  * Class ForceAup
@@ -86,12 +86,12 @@ class ForceAup extends \SimpleSAML\Auth\ProcessingFilter
         $this->interface = (string)$config[self::INTERFACE_PROPNAME];
         $this->adapter = Adapter::getInstance($this->interface);
 
-        $this->perunFacilityReqAupsAttr = perun\AttributeUtils::getAttrName(
+        $this->perunFacilityReqAupsAttr = AttributeUtils::getAttrName(
             self::PERUN_FACILITY_REQ_AUPS_ATTR,
             $this->interface
         );
 
-        $this->perunFacilityVoShortNames = perun\AttributeUtils::getAttrName(
+        $this->perunFacilityVoShortNames = AttributeUtils::getAttrName(
             self::PERUN_FACILITY_VO_SHORT_NAMES_ATTR,
             $this->interface
         );

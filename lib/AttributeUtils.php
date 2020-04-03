@@ -53,6 +53,28 @@ class AttributeUtils
         return $resultAttrNames;
     }
 
+    public static function getAttrNamesMap($internalAttrNames, $interface)
+    {
+        $perunAttributesConfig = self::getConfig();
+        $resultAttrNamesMap = [];
+
+        foreach ($internalAttrNames as $internalAttrName) {
+            try {
+                $attrArray = $perunAttributesConfig->getArray($internalAttrName);
+
+                if (array_key_exists($interface, $attrArray)) {
+                    $resultAttrNamesMap[$attrArray[$interface]] = $internalAttrName  ;
+                }
+            } catch (\Exception $ex) {
+                Logger::warning(
+                    'perun:AttributeUtils: missing ' . $internalAttrName . ' attribute in perun_attributes.php file'
+                );
+            }
+        }
+
+        return $resultAttrNamesMap;
+    }
+
     public static function createAttrNameTypeMap($internalAttrNames, $interface)
     {
         $perunAttributesConfig = self::getConfig();

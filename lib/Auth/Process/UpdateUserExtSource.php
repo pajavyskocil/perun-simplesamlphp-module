@@ -6,6 +6,7 @@ use SimpleSAML\Auth\ProcessingFilter;
 use SimpleSAML\Error\Exception;
 use SimpleSAML\Logger;
 use SimpleSAML\Module;
+use SimpleSAML\Module\perun\AttributeUtils;
 use SimpleSAML\Module\perun\UpdateUESThread;
 use SimpleSAML\Configuration;
 use SimpleSAML\Module\perun;
@@ -36,7 +37,7 @@ class UpdateUserExtSource extends ProcessingFilter
         }
 
         if (isset($config['arrayToStringConversion'])) {
-            $this->attrsToConversion = perun\AttributeUtils::getAttrNames(
+            $this->attrsToConversion = AttributeUtils::getAttrNames(
                 (array)$config['arrayToStringConversion'],
                 perun\Adapter::RPC
             );
@@ -44,7 +45,7 @@ class UpdateUserExtSource extends ProcessingFilter
             $this->attrsToConversion = [];
         }
 
-        $this->attrMap = perun\AttributeUtils::getInterfaceAttrNameDisplayAttrNameMap(
+        $this->attrMap = AttributeUtils::getInterfaceAttrNameDisplayAttrNameMap(
             (array)$config['attrMap'],
             perun\Adapter::RPC
         );

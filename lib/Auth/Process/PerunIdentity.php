@@ -7,6 +7,7 @@ use SimpleSAML\Module\perun\AdapterLdap;
 use SimpleSAML\Module\perun\AdapterRpc;
 use SimpleSAML\Auth\State;
 use SimpleSAML\Module;
+use SimpleSAML\Module\perun\AttributeUtils;
 use SimpleSAML\Utils\HTTP;
 use SimpleSAML\Module\perun\model\Member;
 use SimpleSAML\Module\perun\model\Group;
@@ -57,7 +58,7 @@ class PerunIdentity extends \SimpleSAML\Auth\ProcessingFilter
     const PERUN_FACILITY_VO_SHORT_NAMES_ATTR = 'facilityVoShortNamesAttr';
     const PERUN_FACILITY_DYNAMIC_REGISTRATION_ATTR = 'facilityDynamicRegistrationAttr';
     const PERUN_FACILITY_REGISTER_URL_ATTR = 'facilityRegisterUrlAttr';
-    const PERUN_FACILITY_ALLOW_REGISTRATION_TO_GROUPS = 'facilityAllowRegistrationAttr';
+    const PERUN_FACILITY_ALLOW_REGISTRATION_TO_GROUPS = 'facilityAllowRegistrationToGroups';
     const LIST_OF_SPS_WITHOUT_INFO_ABOUT_REDIRECTION = 'listOfSpsWithoutInfoAboutRedirection';
 
     private $uidsAttr;
@@ -115,7 +116,36 @@ class PerunIdentity extends \SimpleSAML\Auth\ProcessingFilter
                 'perun:PerunIdentity: missing mandatory config option \'' . self::VO_SHORTNAME . '\'.'
             );
         }
-
+        if (!isset($config[self::PERUN_FACILITY_CHECK_GROUP_MEMBERSHIP_ATTR])) {
+            throw new Exception(
+                'perun:PerunIdentity: missing mandatory config option \'' .
+                self::PERUN_FACILITY_CHECK_GROUP_MEMBERSHIP_ATTR . '\'.'
+            );
+        }
+        if (!isset($config[self::PERUN_FACILITY_DYNAMIC_REGISTRATION_ATTR])) {
+            throw new Exception(
+                'perun:PerunIdentity: missing mandatory config option \'' .
+                self::PERUN_FACILITY_DYNAMIC_REGISTRATION_ATTR . '\'.'
+            );
+        }
+        if (!isset($config[self::PERUN_FACILITY_VO_SHORT_NAMES_ATTR])) {
+            throw new Exception(
+                'perun:PerunIdentity: missing mandatory config option \'' .
+                self::PERUN_FACILITY_VO_SHORT_NAMES_ATTR . '\'.'
+            );
+        }
+        if (!isset($config[self::PERUN_FACILITY_REGISTER_URL_ATTR])) {
+            throw new Exception(
+                'perun:PerunIdentity: missing mandatory config option \'' .
+                self::PERUN_FACILITY_REGISTER_URL_ATTR . '\'.'
+            );
+        }
+        if (!isset($config[self::PERUN_FACILITY_ALLOW_REGISTRATION_TO_GROUPS])) {
+            throw new Exception(
+                "perun:PerunIdentity: missing mandatory config option '" .
+                self::PERUN_FACILITY_ALLOW_REGISTRATION_TO_GROUPS . "'."
+            );
+        }
         if (!isset($config[self::INTERFACE_PROPNAME])) {
             $config[self::INTERFACE_PROPNAME] = Adapter::RPC;
         }
@@ -138,30 +168,12 @@ class PerunIdentity extends \SimpleSAML\Auth\ProcessingFilter
         $this->sourceIdPEntityIDAttr = $config[self::SOURCE_IDP_ENTITY_ID_ATTR];
         $this->forceRegistrationToGroups = $config[self::FORCE_REGISTRATION_TO_GROUPS];
 
-        $this->facilityCheckGroupMembershipAttr = perun\AttributeUtils::getAttrName(
-            self::PERUN_FACILITY_CHECK_GROUP_MEMBERSHIP_ATTR,
-            $this->interface
-        );
-
-        $this->facilityDynamicRegistrationAttr = perun\AttributeUtils::getAttrName(
-            self::PERUN_FACILITY_DYNAMIC_REGISTRATION_ATTR,
-            $this->interface
-        );
-
-        $this->facilityVoShortNamesAttr = perun\AttributeUtils::getAttrName(
-            self::PERUN_FACILITY_VO_SHORT_NAMES_ATTR,
-            $this->interface
-        );
-
-        $this->facilityRegisterUrlAttr = perun\AttributeUtils::getAttrName(
-            self::PERUN_FACILITY_REGISTER_URL_ATTR,
-            $this->interface
-        );
-
-        $this->facilityAllowRegistrationToGroupsAttr = perun\AttributeUtils::getAttrName(
-            self::PERUN_FACILITY_ALLOW_REGISTRATION_TO_GROUPS,
-            $this->interface
-        );
+        $this->facilityCheckGroupMembershipAttr = (string)$config[self::PERUN_FACILITY_CHECK_GROUP_MEMBERSHIP_ATTR];
+        $this->facilityDynamicRegistrationAttr = (string)$config[self::PERUN_FACILITY_DYNAMIC_REGISTRATION_ATTR];
+        $this->facilityVoShortNamesAttr = (string)$config[self::PERUN_FACILITY_VO_SHORT_NAMES_ATTR];
+        $this->facilityRegisterUrlAttr = (string)$config[self::PERUN_FACILITY_REGISTER_URL_ATTR];
+        $this->facilityAllowRegistrationToGroupsAttr =
+            (string) $config[self::PERUN_FACILITY_ALLOW_REGISTRATION_TO_GROUPS];
 
         $this->adapter = Adapter::getInstance($this->interface);
         $this->rpcAdapter = new AdapterRpc();
@@ -424,11 +436,11 @@ class PerunIdentity extends \SimpleSAML\Auth\ProcessingFilter
     protected function getSPAttributes($spEntityID)
     {
         $attributes = [
-            self::PERUN_FACILITY_CHECK_GROUP_MEMBERSHIP_ATTR,
-            self::PERUN_FACILITY_DYNAMIC_REGISTRATION_ATTR,
-            self::PERUN_FACILITY_VO_SHORT_NAMES_ATTR,
-            self::PERUN_FACILITY_REGISTER_URL_ATTR,
-            self::PERUN_FACILITY_ALLOW_REGISTRATION_TO_GROUPS
+            $this->facilityCheckGroupMembershipAttr,
+            $this->facilityVoShortNamesAttr,
+            $this->facilityDynamicRegistrationAttr,
+            $this->facilityRegisterUrlAttr,
+            $this->facilityAllowRegistrationToGroupsAttr,
         ];
 
         try {

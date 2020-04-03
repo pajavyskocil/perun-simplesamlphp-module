@@ -3,7 +3,6 @@
 namespace SimpleSAML\Module\perun;
 
 use SimpleSAML\Configuration;
-use SimpleSAML\Module\perun\Auth\Process\AttributeUtils;
 use SimpleSAML\Module\perun\model\User;
 use SimpleSAML\Module\perun\model\Group;
 use SimpleSAML\Module\perun\model\Vo;
@@ -236,7 +235,7 @@ class AdapterLdap extends Adapter
 
     public function getUserAttributesValues($user, $attributes)
     {
-        $attrTypeMap = perun\AttributeUtils::createAttrNameTypeMap(
+        $attrTypeMap = AttributeUtils::createAttrNameTypeMap(
             $attributes,
             self::LDAP
         );
@@ -298,7 +297,7 @@ class AdapterLdap extends Adapter
 
     public function getVoAttributesValues($vo, $attributes)
     {
-        $attrTypeMap = perun\AttributeUtils::createAttrNameTypeMap(
+        $attrTypeMap = AttributeUtils::createAttrNameTypeMap(
             $attributes,
             self::LDAP
         );
@@ -335,21 +334,25 @@ class AdapterLdap extends Adapter
 
     public function getFacilityAttributesValues($facility, $attributes)
     {
-        $attrTypeMap = perun\AttributeUtils::createAttrNameTypeMap(
+        $attrTypeMap = AttributeUtils::createAttrNameTypeMap(
             $attributes,
             self::LDAP
         );
 
+        $attrNames = AttributeUtils::getAttrNamesMap($attributes, self::LDAP);
+
+
         $perunAttrs = $this->connector->searchForEntities(
             $this->ldapBase,
             '(&(objectClass=perunFacility)(perunFacilityId=' . $facility->getId() . '))',
-            $attributes
+            array_keys($attrNames)
         );
 
         $attributesValues = [];
 
         foreach (array_keys($attrTypeMap) as $attrName) {
-            $attributesValues[$attrName] = $this->setAttrValue($attrTypeMap, $perunAttrs[0], $attrName);
+
+            $attributesValues[$attrNames[$attrName]] = $this->setAttrValue($attrTypeMap, $perunAttrs[0], $attrName);
         }
 
         return $attributesValues;

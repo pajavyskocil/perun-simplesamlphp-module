@@ -230,7 +230,7 @@ class AdapterRpc extends Adapter
 
     public function getUserAttributes($user, $attrNames)
     {
-        $perunAttrNames = perun\AttributeUtils::getAttrNames($attrNames, self::RPC);
+        $perunAttrNames = AttributeUtils::getAttrNames($attrNames, self::RPC);
 
         $perunAttrs = $this->connector->get('attributesManager', 'getAttributes', [
             'user' => $user->getId(),
@@ -287,7 +287,7 @@ class AdapterRpc extends Adapter
 
     public function getVoAttributes($vo, $attrNames)
     {
-        $perunAttrNames = perun\AttributeUtils::getAttrNames($attrNames, self::RPC);
+        $perunAttrNames = AttributeUtils::getAttrNames($attrNames, self::RPC);
 
         $perunAttrs = $this->connector->get('attributesManager', 'getAttributes', [
             'vo' => $vo->getId(),
@@ -456,7 +456,7 @@ class AdapterRpc extends Adapter
 
     public function getFacilityAttributes($facility, $attrNames)
     {
-        $perunAttrNames = perun\AttributeUtils::getAttrNames($attrNames, self::RPC);
+        $perunAttrNames = AttributeUtils::getAttrNames($attrNames, self::RPC);
 
         $perunAttrs = $this->connector->get('attributesManager', 'getAttributes', [
             'facility' => $facility->getId(),
