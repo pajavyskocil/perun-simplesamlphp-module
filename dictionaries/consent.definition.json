@@ -27,7 +27,11 @@
     "en": "Person’s principal name",
     "cs": "Identifikátor osoby v organizaci"
   },
-  "forwardedpersonprincipalnames":{
+  "forwardedpersonprincipalname":{
+    "en": "Person’s principal names from home organization(s)",
+    "cs": "Identifikátor(y) osoby z domovské(ých) organizace(cí)"
+  },
+  "voperson_external_id":{
     "en": "Person’s principal names from home organization(s)",
     "cs": "Identifikátor(y) osoby z domovské(ých) organizace(cí)"
   },
