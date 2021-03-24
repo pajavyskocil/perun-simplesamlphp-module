@@ -3,6 +3,7 @@
     "description": "Module which allows SSP to communicate with Perun IAM https://perun.cesnet.cz",
     "type": "simplesamlphp-module",
     "keywords": ["Perun", "perun", "simplesamlphp"],
+    "version": "4.0",
     "license": "BSD-2-Clause",
     "authors": [
         {

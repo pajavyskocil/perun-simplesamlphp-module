@@ -17,6 +17,7 @@ abstract class Adapter
 {
     const RPC = 'rpc';
     const LDAP = 'ldap';
+    const LDAP_MIDPOINT = 'ldap_midpoint';
 
     /**
      * @var RpcConnector | LdapConnector
@@ -39,6 +40,8 @@ abstract class Adapter
             return new AdapterRpc();
         } elseif ($interface === self::LDAP) {
             return new AdapterLdap();
+        } elseif ($interface === self::LDAP_MIDPOINT) {
+            return new AdapterLdapMidpoint();
         } else {
             throw new Exception(
                 'Unknown perun interface. Hint: try ' . self::RPC . ' or ' . self::LDAP

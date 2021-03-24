@@ -41,8 +41,8 @@ class AdapterLdap extends Adapter
     const INTERNAL_ATTR_NAME = 'internalAttrName';
     const TYPE = 'type';
 
-    private $ldapBase;
-    private $fallbackAdapter;
+    protected $ldapBase;
+    protected $fallbackAdapter;
 
     protected $connector;
 
@@ -501,7 +501,7 @@ class AdapterLdap extends Adapter
         return $facilityCapabilities['capabilities'];
     }
 
-    private function setAttrValue($attrsNameTypeMap, $attrsFromLdap, $attr)
+    protected function setAttrValue($attrsNameTypeMap, $attrsFromLdap, $attr)
     {
         if (!array_key_exists($attr, $attrsFromLdap) && $attrsNameTypeMap[$attr][self::TYPE] === self::TYPE_BOOL) {
             return false;
